@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONObject;
+
 import com.adyen.Client;
 import com.adyen.enums.Environment;
 import com.adyen.model.checkout.PaymentsDetailsRequest;
@@ -74,15 +76,16 @@ public class PaymentDetails extends HttpServlet {
                 paymentsDetailsRequest.setDetails(details);
             }
 
-
-
-
             PaymentsResponse paymentsResponse = checkout.paymentsDetails(paymentsDetailsRequest);
 
             Gson gson = new Gson();
             String json = gson.toJson(paymentsResponse);
             
-            out.println(json);
+            JSONObject responseJson = new JSONObject(json);
+            
+            System.out.println(responseJson.toString(4));
+            
+            out.println(responseJson);
 
             //Log.v("DetailsCallResponse",json);
 
