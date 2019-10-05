@@ -1,0 +1,185 @@
+<html>
+
+<head>
+<meta charset="utf-8">
+<title>Adyen Pay</title>
+
+<link rel="stylesheet" href="https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.css"/>
+</head>
+
+<body>
+
+<h1 id="txtHint" style="color:green;">
+        Get Payment Methods
+    </h1>
+
+    <form id="execute">
+        <input type="text" placeholder="NL" name="countryCode" id="country">
+        <input type="text" placeholder="EUR" name="currency" id="currencycode">
+        <input type="number" placeholder="1000" name="value" id="amount">
+        <input type="submit" value="Submit">
+    </form>
+    
+<div id="dropin"></div>
+
+<script src="http://code.jquery.com/jquery.min.js" type="text/javascript"></script>
+<script src="https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.js"></script>
+
+<script>
+	var country;
+	var currencycode;
+	var amount;
+	var paymentResponse;
+	
+
+    //var resp = "<?php echo json_encode($result) ?>";
+    //+ JSON.stringify(item.paymentMethod)
+    
+    function loadDropIn(paymentMethodsResponse){
+    	document.getElementById("dropin").innerHTML = "";
+    	
+    	const configuration = {
+    			  locale: "en-US",
+    			  environment: "test",
+    			  originKey: "pub.v2.8215688115660117.aHR0cDovL2xvY2FsaG9zdDo4MDgw.SoZ2ZK3oFwYrZbURZKTwPnFeYzxgAFMucCxvUPgxpS8",
+    			  paymentMethodsResponse: JSON.parse(paymentMethodsResponse)
+    			};
+    			const checkout = new AdyenCheckout(configuration);
+
+    			const dropin = checkout
+    			.create('dropin', {
+    			  paymentMethodsConfiguration: {
+    			    applepay: { // Example required configuration for Apple Pay
+    			      configuration: {
+    			        merchantName: 'PaulAsiimwe', // Name to be displayed on the form
+    			        merchantIdentifier: 'adyen.test.merchant' // Your Apple merchant identifier as described in https://developer.apple.com/documentation/apple_pay_on_the_web/applepayrequest/2951611-merchantidentifier
+    			      }
+    			    },
+    			    paywithgoogle: { // Example required configuration for Google Pay
+    			      environment: "TEST", // Change this to PRODUCTION when you're ready to accept live Google Pay payments
+    			      configuration: {
+    			       gatewayMerchantId: "PaulAsiimwe", // Your Adyen merchant or company account name
+    			       merchantIdentifier: "12345678910111213141" // Your Google Merchant ID as described in https://developers.google.com/pay/api/web/guides/test-and-deploy/deploy-production-environment#obtain-your-merchantID
+    			      }
+    			    },
+    			    card: { // Example optional configuration for Cards
+    			      hasHolderName: true,
+    			      holderNameRequired: true,
+    			      enableStoreDetails: true,
+    			      name: 'Credit or debit card'
+    			    }
+    			  },
+    			  onSubmit: (state, dropin) => {
+    				  
+    				  
+    				  
+    				  //Make Payment Call
+    				  var xhttp = new XMLHttpRequest();
+    			        xhttp.onreadystatechange = function() {
+    			            if (this.readyState == 4 && this.status == 200) {
+    			                
+    			                paymentResponse = JSON.parse(this.responseText);
+    			                
+    			                switch(paymentResponse.resultCode){
+
+    			                case "Authorised":
+    			                	//dropin.setStatus('success', { message: 'Payment successful!' });
+    			                	window.location.replace("Results.html?response="+encodeURIComponent(this.responseText));
+    			                	break;
+    			                
+    			                case "RedirectShopper":
+    			                	dropin.handleAction(paymentResponse.action);
+        			                break;
+        			                
+        			            //Other result codes here: https://docs.adyen.com/checkout/payment-result-codes such as Received, Refused, Pending, PresentToShopper, Error, Cancelled, AuthenticationNotRequired, AuthenticationFinished
+    			                
+    			                /* default: 
+    			                	console.log('default');
+        			            break; */
+    			            }
+    			                
+    			           }
+    			        };
+    			        xhttp.open("GET", "MakePayment?data=" + encodeURIComponent(JSON.stringify(state.data))+"&currency="+currencycode+"&value="+amount, true);
+    			        xhttp.send();
+    			        xhttp.responseText;
+    			    
+    			    
+    	          /* .then(action => {
+    			        dropin.handleAction(action);
+    			        // Drop-in handles the action object from the /payments response
+    			      })
+    			      .catch(error => {
+    			        throw Error(error);
+    			      }); */
+    			  },
+    			  onAdditionalDetails: (state, dropin) => {
+    				  
+    			      alert("Triggered");
+    			      
+    			      
+    			      
+    			      /* .then(action => {
+    			        dropin.handleAction(action);
+    			        // Drop-in handles the action object from the /payments/details response
+    			      })
+    			      .catch(error => {
+    			        throw Error(error);
+    			      }); */
+    			  }
+    			})
+    			.mount('#dropin');
+    	    
+    }
+    
+    function get(name){
+    	  const parts = window.location.href.split('?');
+    	  if (parts.length > 1) {
+    	    name = encodeURIComponent(name);
+    	    const params = parts[1].split('&');
+    	    const found = params.filter(el => (el.split('=')[0] === name) && el);
+    	    if (found.length) return decodeURIComponent(found[0].split('=')[1]);
+    	  }
+    	}
+    
+   
+
+    $("#execute").submit(function(e){
+    	e.preventDefault();
+    	
+    	country = document.getElementById("country").value;
+    	currencycode = document.getElementById("currencycode").value;
+    	amount = document.getElementById("amount").value;
+    	
+    	var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+          	  //document.getElementById("txtHint").innerHTML = this.responseText;
+                loadDropIn(this.responseText)
+           }
+        };
+        xhttp.open("GET", "GetPaymentMethods?countryCode="+country+"&currency="+currencycode+"&value="+amount, true);
+        //xhttp.open("GET", "http://localhost:8080/AdyenServlet/GetPaymentMethods?countryCode=CN&currency=EUR&value=1000", true);
+        xhttp.send();
+	});
+    
+    //console.log(get("payload"));
+
+    if(get("payload")){
+    	alert("I was called");
+    	//calling your server to make a /payments/details request
+	      var xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {
+					if (this.readyState == 4 && this.status == 200) {
+						
+						}
+				};
+			xhttp.open("GET", "makePaymentDetailsCall?paymentData="+paymentResponse.paymentData+"&payload="+get("payload"), true);
+			xhttp.send();
+    }
+    
+
+</script>
+</body>
+
+</html>
