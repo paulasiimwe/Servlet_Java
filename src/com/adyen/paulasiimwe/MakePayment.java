@@ -2,6 +2,7 @@ package com.adyen.paulasiimwe;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.UUID;
 
 import javax.servlet.ServletException;
@@ -86,19 +87,21 @@ public class MakePayment extends HttpServlet {
 		}
 		
 		
-		System.out.println(paymentComponentData.toString(4));
+		System.out.println("\n\nPayment Component Data:\n"+paymentComponentData.toString(4));
 		
 		try{
 
             paymentsRequest.setReference(generateString());
+            
+            
 
             DefaultPaymentMethodDetails dm  = new DefaultPaymentMethodDetails();
 
             String paymentMethodType = paymentComponentData.getJSONObject("paymentMethod").getString("type");
             
 
-    		paymentsRequest.setChannel(PaymentsRequest.ChannelEnum.WEB);
-    		paymentsRequest.setOrigin("http://localhost:8080/AdyenServlet/landing.html");
+    		//paymentsRequest.setChannel(PaymentsRequest.ChannelEnum.WEB);
+    		//paymentsRequest.setOrigin("http://localhost:8080/AdyenServlet/landing.html");
 
 
             switch (paymentMethodType){
@@ -114,6 +117,13 @@ public class MakePayment extends HttpServlet {
                     paymentsRequest.addEncryptedCardData(encryptedCardNumber,encryptedExpiryMonth, encryptedExpiryYear, encryptedSecurityCode, "John Smith");
 
                     paymentsRequest.setShopperIP("192.0.2.1");
+                    
+                    HashMap<String, String> additionalData = new HashMap<>();
+                    additionalData.put("allow3DS2", "true");
+                    
+                    paymentsRequest.setAdditionalData(additionalData);
+
+                    //paymentsRequest.setRecurringProcessingModel(PaymentsRequest.RecurringProcessingModelEnum.CARD_ON_FILE);
 
                     paymentsRequest.setBrowserInfo(
                             new BrowserInfo()
@@ -163,6 +173,8 @@ public class MakePayment extends HttpServlet {
 
 
                     paymentsRequest.setPaymentMethod(dm);
+                    
+                    break;
 
                 case "wechatpayQR":
 
@@ -193,6 +205,25 @@ public class MakePayment extends HttpServlet {
             	paymentsRequest.setReturnUrl("http://localhost:8080/AdyenServlet/landing.html");
             }
             
+            //paymentsRequest.shopperReference("VickVickersonJr1985");
+            //paymentsRequest.setShopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE);
+            //paymentsRequest.storePaymentMethod(true);
+            
+            
+            paymentsRequest.setChannel(
+            		PaymentsRequest.ChannelEnum.fromValue(
+            				request.getParameter("channel")
+            				)
+            		);
+            
+            System.out.println("\n\nPayment Request:\n"+
+            		new JSONObject(
+            				new Gson().toJson(
+            						paymentsRequest
+            						)
+            				).toString(4)
+            		);
+            
             PaymentsResponse paymentsResponse = checkout.payments(paymentsRequest);
 
 
@@ -201,7 +232,7 @@ public class MakePayment extends HttpServlet {
 
             JSONObject responseJson = new JSONObject(json);
             
-            System.out.println(responseJson.toString(4));
+            System.out.println("\n\nPayment Response:\n"+responseJson.toString(4));
             
             out.println(responseJson);
 
@@ -220,7 +251,8 @@ public class MakePayment extends HttpServlet {
 
         }catch (Exception e){
 //            return new CallResult(CallResult.ResultType.FINISHED, "FAIL");
-        	System.out.println(e.toString());
+        	System.out.println("\n\n"+e.toString());
+        	out.println(e.toString());
         }
 		
 	}

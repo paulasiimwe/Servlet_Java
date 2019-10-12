@@ -1,7 +1,8 @@
 package com.adyen.paulasiimwe;
-
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -68,7 +69,7 @@ public class GetPaymentMethods extends HttpServlet {
 		amount.setCurrency(request.getParameter("currency"));
 		
 		try {
-			paymentMethodsRequest.setChannel(PaymentMethodsRequest.ChannelEnum.fromValue(request.getParameter("channel").toUpperCase()));
+			paymentMethodsRequest.setChannel(PaymentMethodsRequest.ChannelEnum.fromValue(request.getParameter("channel")));
 			amount.setValue(
 					Long.valueOf(
 							request.getParameter("value")
@@ -82,8 +83,22 @@ public class GetPaymentMethods extends HttpServlet {
 		
 		
 		paymentMethodsRequest.setAmount(amount);
+		
+		List<String> allowedPaymentMethods = new ArrayList<String>();
+		allowedPaymentMethods.add("mc");
+		
+		//paymentMethodsRequest.setAllowedPaymentMethods(allowedPaymentMethods);
 		//paymentMethodsRequest.setChannel(PaymentMethodsRequest.ChannelEnum.fromValue(request.getParameter("channel").toUpperCase()));
 		try {
+			
+			System.out.println("\n\nPaymentMethods Request:\n"+
+            		new JSONObject(
+            				new Gson().toJson(
+            						paymentMethodsRequest
+            						)
+            				).toString(4)
+            		);
+			
 			PaymentMethodsResponse Response = checkout.paymentMethods(paymentMethodsRequest);
 			
 			Gson gson = new Gson();
@@ -91,15 +106,19 @@ public class GetPaymentMethods extends HttpServlet {
             
             JSONObject jb = new JSONObject(json);
             
-            
+            System.out.println("\n\nPaymentMethods Response:\n"+
+            		jb.toString(4)
+            		);
             
             out.print(jb);
 			//return json;
 		} catch (ApiException e) {
-			e.printStackTrace();
+			System.out.println(e.toString());
+			out.print(e.toString());
 			//return "Failed to get Methods, error is: "+e.toString();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println(e.toString());
+			out.print(e.toString());
 			//return "Failed to get Methods, error is: "+e.toString();
 		}
 	}
