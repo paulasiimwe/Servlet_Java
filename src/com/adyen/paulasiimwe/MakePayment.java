@@ -76,10 +76,15 @@ public class MakePayment extends HttpServlet {
 		
 		JSONObject paymentComponentData;
 		
+		
+		
 		try {
-			paymentComponentData = new JSONObject(EncodingUtil.decodeURIComponent(request.getParameter("data")));
+			if(request.getParameter("channel").equalsIgnoreCase("ios")) {
+				paymentComponentData = new JSONObject(request.getParameter("data"));
+			}else {
+				paymentComponentData = new JSONObject(EncodingUtil.decodeURIComponent(request.getParameter("data")));
+			}
 			
-			paymentComponentData = paymentComponentData.getJSONObject("mPaymentComponentData");
 		}catch(JSONException e) {
 			paymentComponentData = new JSONObject(EncodingUtil.decodeURIComponent(request.getParameter("data")));
 		}catch(Exception e) {
@@ -96,9 +101,11 @@ public class MakePayment extends HttpServlet {
             
 
             DefaultPaymentMethodDetails dm  = new DefaultPaymentMethodDetails();
-
-            String paymentMethodType = paymentComponentData.getJSONObject("paymentMethod").getString("type");
             
+            String paymentMethodType;
+
+            
+            paymentMethodType = paymentComponentData.getString("type");
 
     		//paymentsRequest.setChannel(PaymentsRequest.ChannelEnum.WEB);
     		//paymentsRequest.setOrigin("http://localhost:8080/AdyenServlet/landing.html");
@@ -108,10 +115,10 @@ public class MakePayment extends HttpServlet {
 
 
                 case "scheme":
-                    String encryptedCardNumber = paymentComponentData.getJSONObject("paymentMethod").getString("encryptedCardNumber");
-                    String encryptedExpiryMonth = paymentComponentData.getJSONObject("paymentMethod").getString("encryptedExpiryMonth");
-                    String encryptedExpiryYear = paymentComponentData.getJSONObject("paymentMethod").getString("encryptedExpiryYear");
-                    String encryptedSecurityCode = paymentComponentData.getJSONObject("paymentMethod").getString("encryptedSecurityCode");
+                    String encryptedCardNumber = paymentComponentData.getString("encryptedCardNumber");
+                    String encryptedExpiryMonth = paymentComponentData.getString("encryptedExpiryMonth");
+                    String encryptedExpiryYear = paymentComponentData.getString("encryptedExpiryYear");
+                    String encryptedSecurityCode = paymentComponentData.getString("encryptedSecurityCode");
 
 
                     paymentsRequest.addEncryptedCardData(encryptedCardNumber,encryptedExpiryMonth, encryptedExpiryYear, encryptedSecurityCode, "John Smith");
@@ -136,13 +143,17 @@ public class MakePayment extends HttpServlet {
                                     .screenWidth(1536)
                                     .timeZoneOffset(0)*/
                     );
+                    
+//                    paymentsRequest.shopperReference("VickVickersonJr1985");
+//                    paymentsRequest.setShopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE);
+//                    paymentsRequest.storePaymentMethod(true);
 
                     break;
 
                 case "ideal":
 
                     dm.setType("ideal");
-                    dm.setIdealIssuer(paymentComponentData.getJSONObject("paymentMethod").getString("issuer"));
+                    dm.setIdealIssuer(paymentComponentData.getString("issuer"));
 
                     paymentsRequest.setPaymentMethod(dm);
 
@@ -168,8 +179,8 @@ public class MakePayment extends HttpServlet {
                 case "sepadirectdebit":
 
                     dm.setType("sepadirectdebit");
-                    dm.setSepaIbanNumber(paymentComponentData.getJSONObject("paymentMethod").getString("sepa.ibanNumber"));
-                    dm.setSepaOwnerName(paymentComponentData.getJSONObject("paymentMethod").getString("sepa.ownerName"));
+                    dm.setSepaIbanNumber(paymentComponentData.getString("sepa.ibanNumber"));
+                    dm.setSepaOwnerName(paymentComponentData.getString("sepa.ownerName"));
 
 
                     paymentsRequest.setPaymentMethod(dm);
@@ -205,9 +216,7 @@ public class MakePayment extends HttpServlet {
             	paymentsRequest.setReturnUrl("http://localhost:8080/AdyenServlet/landing.html");
             }
             
-            //paymentsRequest.shopperReference("VickVickersonJr1985");
-            //paymentsRequest.setShopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE);
-            //paymentsRequest.storePaymentMethod(true);
+            
             
             
             paymentsRequest.setChannel(
