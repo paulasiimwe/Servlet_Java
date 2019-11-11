@@ -3,6 +3,7 @@ package com.adyen.paulasiimwe;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -71,6 +72,8 @@ public class PaymentDetails extends HttpServlet {
 		
 		String type = request.getParameter("type");
 		
+		System.out.println("ActionType: "+type);
+		
 		PaymentsDetailsRequest paymentsDetailsRequest = new PaymentsDetailsRequest();
         HashMap<String, String> details = new HashMap<>();
 
@@ -121,19 +124,28 @@ public class PaymentDetails extends HttpServlet {
             
             JSONObject responseJson = new JSONObject(json);
             
+            if(paymentsResponse.getAction() != null) {
+        		JSONObject responseAction = responseJson.getJSONObject("action");
+        		
+        		responseAction.put("paymentData", paymentsResponse.getPaymentData());
+        		
+        		responseJson.remove("action");
+        		
+        		responseJson.put("action", responseAction);
+        	}
+            
             System.out.println("\n\nPaymentDetails Response:\n"+responseJson.toString(4));
             
             out.println(responseJson);
 
-            //Log.v("DetailsCallResponse",json);
-
-            //return new CallResult(CallResult.ResultType.FINISHED, json);
+            
         }catch (Exception e){
-//            Log.e("DetailsCallResponse",e.toString());
-//            return new CallResult(CallResult.ResultType.FINISHED, "FAIL");
+//            
         	System.out.println(e.toString());
 			out.print(e.toString());
         }
+        
+        
 	}
 	
 	

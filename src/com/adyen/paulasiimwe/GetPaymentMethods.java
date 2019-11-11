@@ -107,7 +107,7 @@ public class GetPaymentMethods extends HttpServlet {
             JSONObject jb = new JSONObject(json);
             
             System.out.println("\n\nPaymentMethods Response:\n"+
-            		jb.toString(4)
+            		jb.toString()
             		);
             
             out.print(jb);

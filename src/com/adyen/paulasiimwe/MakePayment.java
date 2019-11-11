@@ -238,10 +238,22 @@ public class MakePayment extends HttpServlet {
 
             Gson gson = new Gson();
             String json = gson.toJson(paymentsResponse);
+            
 
             JSONObject responseJson = new JSONObject(json);
             
+            	if(paymentsResponse.getAction() != null) {
+            		JSONObject responseAction = responseJson.getJSONObject("action");
+            		
+            		responseAction.put("paymentData", paymentsResponse.getPaymentData());
+            		
+            		responseJson.remove("action");
+            		
+            		responseJson.put("action", responseAction);
+            	}
+            
             System.out.println("\n\nPayment Response:\n"+responseJson.toString(4));
+            
             
             out.println(responseJson);
 
