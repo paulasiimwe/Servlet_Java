@@ -103,6 +103,12 @@ public class PaymentDetails extends HttpServlet {
                 paymentsDetailsRequest.setPaymentData(request.getParameter("paymentData"));
                 break;
                 
+            case "redirectklarna_account":
+            	details.put("redirectResult", request.getParameter("redirectResult"));
+            	paymentsDetailsRequest.setPaymentData(request.getParameter("paymentData"));
+                paymentsDetailsRequest.setDetails(details);
+                break;
+                
         	}
             
             System.out.println("\n\nPaymentDetails Request:\n"+

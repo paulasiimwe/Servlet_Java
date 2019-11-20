@@ -16,6 +16,8 @@ import com.adyen.enums.Environment;
 import com.adyen.model.Amount;
 import com.adyen.model.BrowserInfo;
 import com.adyen.model.checkout.DefaultPaymentMethodDetails;
+import com.adyen.model.checkout.LineItem;
+import com.adyen.model.checkout.LineItem.TaxCategoryEnum;
 import com.adyen.model.checkout.PaymentsRequest;
 import com.adyen.model.checkout.PaymentsResponse;
 import com.adyen.service.Checkout;
@@ -198,7 +200,39 @@ public class MakePayment extends HttpServlet {
                     paymentsRequest.setPaymentMethod(dm);
 
                     break;
+                    
+                case "klarna_account":
 
+                    dm.setType("klarna_account");
+
+                    paymentsRequest.setPaymentMethod(dm);
+                    
+                    paymentsRequest.setShopperLocale("en_US");
+                    
+                    paymentsRequest.setCountryCode(request.getParameter("countryCode"));
+                    
+                    paymentsRequest.setShopperEmail("simonhopper@test.adyen.com");
+                    
+                    LineItem lineItem = new LineItem();
+                    
+                    lineItem.setAmountIncludingTax(Long.valueOf(
+    						request.getParameter("value")
+    						)
+    				);
+                    lineItem.setAmountExcludingTax(Long.valueOf(
+    						request.getParameter("value")
+    						)-100L);
+                    
+                    lineItem.setQuantity(1L);
+                    lineItem.setDescription("Stuff");
+                    lineItem.setId("Item1");
+                    lineItem.setTaxAmount(100L);
+                    lineItem.setTaxCategory(TaxCategoryEnum.HIGH);
+                    
+                    
+                    paymentsRequest.addLineItemsItem(lineItem);
+
+                    break;
             }
 
             try {
