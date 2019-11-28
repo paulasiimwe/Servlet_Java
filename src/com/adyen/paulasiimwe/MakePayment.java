@@ -13,8 +13,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import com.adyen.Client;
 import com.adyen.enums.Environment;
+import com.adyen.model.Address;
 import com.adyen.model.Amount;
 import com.adyen.model.BrowserInfo;
+import com.adyen.model.Name;
+import com.adyen.model.Name.GenderEnum;
 import com.adyen.model.checkout.DefaultPaymentMethodDetails;
 import com.adyen.model.checkout.LineItem;
 import com.adyen.model.checkout.LineItem.TaxCategoryEnum;
@@ -76,10 +79,10 @@ public class MakePayment extends HttpServlet {
 		
 		
 		try {
-			if(request.getParameter("channel").equalsIgnoreCase("ios")) {
-				paymentComponentData = new JSONObject(request.getParameter("data"));
-			}else {
+			if(request.getParameter("channel").equalsIgnoreCase("Android")){
 				paymentComponentData = new JSONObject(EncodingUtil.decodeURIComponent(request.getParameter("data")));
+			}else {
+				paymentComponentData = new JSONObject(request.getParameter("data"));
 			}
 			
 		}catch(JSONException e) {
@@ -156,15 +159,6 @@ public class MakePayment extends HttpServlet {
 
                     break;
 
-                case "klarna":
-
-                    dm.setType("klarna");
-
-                    paymentsRequest.setPaymentMethod(dm);
-
-                    break;
-
-
                 case "paypal":
 
                     dm.setType("paypal");
@@ -176,8 +170,14 @@ public class MakePayment extends HttpServlet {
                 case "sepadirectdebit":
 
                     dm.setType("sepadirectdebit");
-                    dm.setSepaIbanNumber(paymentComponentData.getString("sepa.ibanNumber"));
-                    dm.setSepaOwnerName(paymentComponentData.getString("sepa.ownerName"));
+                    try {
+                    	dm.setSepaIbanNumber(paymentComponentData.getString("sepa.ibanNumber"));
+                        dm.setSepaOwnerName(paymentComponentData.getString("sepa.ownerName"));
+                    }catch(Exception e) {
+                    	dm.setSepaIbanNumber(paymentComponentData.getString("ibanNumber"));
+                        dm.setSepaOwnerName(paymentComponentData.getString("ownerName"));
+                    }
+                    
 
 
                     paymentsRequest.setPaymentMethod(dm);
@@ -202,8 +202,10 @@ public class MakePayment extends HttpServlet {
                     break;
                     
                 case "klarna_account":
+                case "klarna_paynow":
+                case "klarna":
 
-                    dm.setType("klarna_account");
+                    dm.setType(paymentMethodType);
 
                     paymentsRequest.setPaymentMethod(dm);
                     
@@ -213,8 +215,22 @@ public class MakePayment extends HttpServlet {
                     
                     paymentsRequest.setShopperEmail("simonhopper@test.adyen.com");
                     
-                    LineItem lineItem = new LineItem();
+//                    Name shopperName = new Name();
+//                    shopperName.setFirstName("Simon");
+//                    shopperName.setLastName("Hopper");
+//                    shopperName.setGender(GenderEnum.MALE);
+//                    paymentsRequest.setShopperName(shopperName);
                     
+//                    Address billingAddress = new Address();
+//                    billingAddress.setCity("Berlin");
+//                    billingAddress.setCountry("DE");
+//                    billingAddress.setPostalCode("10117");
+//                    billingAddress.setStreet("Friedrichstraße");
+//                    billingAddress.setHouseNumberOrName("63");
+//                    paymentsRequest.setBillingAddress(billingAddress);
+                    
+                    
+                    LineItem lineItem = new LineItem();
                     lineItem.setAmountIncludingTax(Long.valueOf(
     						request.getParameter("value")
     						)
@@ -222,17 +238,26 @@ public class MakePayment extends HttpServlet {
                     lineItem.setAmountExcludingTax(Long.valueOf(
     						request.getParameter("value")
     						)-100L);
-                    
                     lineItem.setQuantity(1L);
                     lineItem.setDescription("Stuff");
                     lineItem.setId("Item1");
                     lineItem.setTaxAmount(100L);
                     lineItem.setTaxCategory(TaxCategoryEnum.HIGH);
-                    
-                    
                     paymentsRequest.addLineItemsItem(lineItem);
+                    
+                    
+//                    HashMap<String, String> klarnaAdditionalData = new HashMap<>();
+//                    klarnaAdditionalData.put("openinvoicedata.merchantData", "eyJjdXN0b21lcl9hY");
+//                    paymentsRequest.setAdditionalData(klarnaAdditionalData);
+                    
 
                     break;
+                    
+                case "directEbanking":
+                	dm.setType(paymentMethodType);
+
+                    paymentsRequest.setPaymentMethod(dm);
+                	break;
             }
 
             try {
@@ -318,5 +343,9 @@ public class MakePayment extends HttpServlet {
 	public static String generateString() {
         return UUID.randomUUID().toString().replaceAll("-", "");
     }
+	
+	private void klarnaSetup() {
+		
+	}
 
 }
