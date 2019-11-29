@@ -32,7 +32,7 @@
 	var country;
 	var currencycode;
 	var amount;
-	var paymentResponse = sessionStorage.getItem('paymentResponse');
+	var paymentData = localStorage.getItem('paymentData');
 	
 
     //var resp = "<?php echo json_encode($result) ?>";
@@ -79,34 +79,8 @@
     				  //Make Payment Call
     				  var xhr = new XMLHttpRequest();
     				  xhr.onreadystatechange = function() {
-  			            if (this.readyState == 4 && this.status == 200) {
-  			                
-  			                paymentResponse = JSON.parse(this.responseText);
-  			                
-  			                switch(paymentResponse.resultCode){
-
-  			                case "Authorised":
-  			                	//dropin.setStatus('success', { message: 'Payment successful!' });
-  			                	//window.location.replace("Results.html?response="+encodeURIComponent(this.responseText));
-  			                	
-  			                	dropin.setStatus('success', { message: 'Payment successful!' });
-			                	document.getElementById("results").innerHTML = this.responseText;
-  			                	break;
-  			                
-  			                case "RedirectShopper":
-  			                	sessionStorage.setItem('paymentResponse', paymentResponse);
-  			                	dropin.handleAction(paymentResponse.action);
-      			                break;
-      			                
-      			            //Other result codes here: https://docs.adyen.com/checkout/payment-result-codes such as Received, Refused, Pending, PresentToShopper, Error, Cancelled, AuthenticationNotRequired, AuthenticationFinished
-  			                
-  			                 default: 
-  			                	console.log('default');
-      			            break; 
-  			            }
-  			                
-  			           }
-  			        };
+    					  handleResponse(this, dropin);
+    					};
     				  xhr.open("POST", "MakePayment", true);
     				  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
     				  xhr.send("data=" + encodeURIComponent(JSON.stringify(state.data.paymentMethod))+"&currency="+currencycode+"&value="+amount+"&channel=Web&returnurl=http://localhost:8080/AdyenServlet/dropin.html");
@@ -120,18 +94,6 @@
     			.mount('#dropin');
     	    
     }
-    
-    function get(name){
-    	  const parts = window.location.href.split('?');
-    	  if (parts.length > 1) {
-    	    name = encodeURIComponent(name);
-    	    const params = parts[1].split('&');
-    	    const found = params.filter(el => (el.split('=')[0] === name) && el);
-    	    if (found.length) return decodeURIComponent(found[0].split('=')[1]);
-    	  }
-    	}
-    
-   
 
     $("#execute").submit(function(e){
     	e.preventDefault();
@@ -159,39 +121,26 @@
     	//calling your server to make a /payments/details request
 	      var xhttp = new XMLHttpRequest();
 				xhttp.onreadystatechange = function() {
-					if (this.readyState == 4 && this.status == 200) {
-						
-						paymentResponse = JSON.parse(this.responseText);
-			                
-			                switch(paymentResponse.resultCode){
-
-			                case "Authorised":
-			                	//dropin.setStatus('success', { message: 'Payment successful!' });
-			                	//window.location.replace("Results.html?response="+encodeURIComponent(this.responseText));
-			                	//document.getElementById("results").innerHTML = get("response");
-			                	document.getElementById("results").innerHTML = this.responseText;
-			                	break;
-			                
-			                case "RedirectShopper":
-			                	sessionStorage.setItem('paymentResponse', paymentResponse);
-			                	dropin.handleAction(paymentResponse.action);
-  			                break;
-  			                
-  			            //Other result codes here: https://docs.adyen.com/checkout/payment-result-codes such as Received, Refused, Pending, PresentToShopper, Error, Cancelled, AuthenticationNotRequired, AuthenticationFinished
-			                
-			                 default: 
-			                	console.log('default');
-  			            break; 
-			            }
-						
-						}
+					handleResponse(this, dropin);
 				};
-			xhttp.open("GET", "makePaymentDetailsCall?paymentData="+paymentResponse.paymentData+"&payload="+get("payload"), true);
-			xhttp.send();
 			
 			xhttp.open("POST", "PaymentDetails", true);
 			xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-			xhttp.send("paymentData="+paymentResponse.paymentData+"&payload="+encodeURIComponent(get("payload"))+"&type=redirectideal");
+			xhttp.send("paymentData="+encodeURIComponent(paymentData)+"&payload="+encodeURIComponent(get("payload"))+"&type=redirectideal");
+			  
+    }
+    
+    if(get("MD")&&get("PaRes")){
+    	//alert("I was called");
+    	//calling your server to make a /payments/details request
+	      var xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {
+					handleResponse(this, dropin);
+				};
+			
+			xhttp.open("POST", "PaymentDetails", true);
+			xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+			xhttp.send("paymentData="+encodeURIComponent(paymentData)+"&MD="+encodeURIComponent(get("MD"))+"&type=redirectscheme&PaRes="+encodeURIComponent(get("PaRes")));
 			  
     }
     
@@ -204,6 +153,41 @@
   	    if (found.length) return decodeURIComponent(found[0].split('=')[1]);
   	  }
   	}
+    
+    function handleResponse(response, dropin){
+    	
+    	if (response.readyState == 4 && response.status == 200) {
+			
+			paymentResponse = JSON.parse(response.responseText);
+			localStorage.setItem('paymentData', paymentResponse.paymentData);
+                
+                switch(paymentResponse.resultCode){
+
+                case "Authorised":
+                	//dropin.setStatus('success', { message: 'Payment successful!' });
+                	//window.location.replace("Results.html?response="+encodeURIComponent(this.responseText));
+                	//document.getElementById("results").innerHTML = get("response");
+                	
+                	document.getElementById("results").innerHTML = response.responseText;
+                	break;
+                
+                case "RedirectShopper":
+                	
+                	dropin.handleAction(paymentResponse.action);
+	                break;
+	                
+	            //Other result codes here: https://docs.adyen.com/checkout/payment-result-codes such as Received, Refused, Pending, PresentToShopper, Error, Cancelled, AuthenticationNotRequired, AuthenticationFinished
+                
+                 default: 
+                	console.log('default');
+	            break; 
+            }
+			
+			}
+    	
+    }
+    
+    
     
 
 </script>

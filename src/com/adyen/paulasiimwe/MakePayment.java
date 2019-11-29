@@ -270,8 +270,8 @@ public class MakePayment extends HttpServlet {
             	paymentsRequest.setReturnUrl("http://localhost:8080/AdyenServlet/landing.html");
             }
             
-            
-            
+            //NOT RECOMMENDED FOR PRODUCTION LEVEL
+            paymentsRequest.setRedirectFromIssuerMethod("GET");
             
             paymentsRequest.setChannel(
             		PaymentsRequest.ChannelEnum.fromValue(
@@ -288,10 +288,14 @@ public class MakePayment extends HttpServlet {
             		);
             
             PaymentsResponse paymentsResponse = checkout.payments(paymentsRequest);
+            
+            
 
 
             Gson gson = new Gson();
             String json = gson.toJson(paymentsResponse);
+            
+            System.out.println("\n\nRaw Payment Response:\n"+json);
             
 
             JSONObject responseJson = new JSONObject(json);
@@ -299,6 +303,12 @@ public class MakePayment extends HttpServlet {
             	if(paymentsResponse.getAction() != null) {
             		JSONObject responseAction = responseJson.getJSONObject("action");
             		
+            		//If method is POST, add the data JSON object from the root level response to the action JSON Object
+            		if(responseAction.getString("method").equalsIgnoreCase("POST")){
+            			responseAction.put("data", responseJson.getJSONObject("redirect").getJSONObject("data"));
+            		}
+            		
+            		//Add payment data from the root level response to the action JSON object
             		responseAction.put("paymentData", paymentsResponse.getPaymentData());
             		
             		responseJson.remove("action");
@@ -343,9 +353,5 @@ public class MakePayment extends HttpServlet {
 	public static String generateString() {
         return UUID.randomUUID().toString().replaceAll("-", "");
     }
-	
-	private void klarnaSetup() {
-		
-	}
 
 }
