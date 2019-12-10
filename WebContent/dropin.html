@@ -33,10 +33,26 @@
 	var currencycode;
 	var amount;
 	var paymentData = localStorage.getItem('paymentData');
-	
+	var loadedDropIn;
 
-    //var resp = "<?php echo json_encode($result) ?>";
-    //+ JSON.stringify(item.paymentMethod)
+	$("#execute").submit(function(e){
+    	e.preventDefault();
+    	
+    	country = document.getElementById("country").value;
+    	currencycode = document.getElementById("currencycode").value;
+    	amount = document.getElementById("amount").value;
+    	
+    	var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+          	  //document.getElementById("txtHint").innerHTML = this.responseText;
+                loadDropIn(this.responseText)
+           }
+        };
+        xhttp.open("GET", "GetPaymentMethods?countryCode="+country+"&currency="+currencycode+"&value="+amount, true);
+        //xhttp.open("GET", "http://localhost:8080/AdyenServlet/GetPaymentMethods?countryCode=CN&currency=EUR&value=1000", true);
+        xhttp.send();
+	});
     
     function loadDropIn(paymentMethodsResponse){
     	document.getElementById("dropin").innerHTML = "";
@@ -74,80 +90,69 @@
     			  },
     			  onSubmit: (state, dropin) => {
     				  
+    				  loadedDropIn = dropin;
     				  //console.log(JSON.stringify(state.data.paymentMethod));
     				  
-    				  //Make Payment Call
-    				  var xhr = new XMLHttpRequest();
-    				  xhr.onreadystatechange = function() {
-    					  handleResponse(this, dropin);
-    					};
-    				  xhr.open("POST", "MakePayment", true);
-    				  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-    				  xhr.send("data=" + encodeURIComponent(JSON.stringify(state.data.paymentMethod))+"&currency="+currencycode+"&value="+amount+"&channel=Web&returnurl=http://localhost:8080/AdyenServlet/dropin.html");
-    				  
+    				   makeCall("MakePayment",
+    						  "data=" + encodeURIComponent(JSON.stringify(state.data.paymentMethod))
+    						  +"&currency="+currencycode
+    						  +"&value="+amount
+    						  +"&channel=Web"
+    						  +"&returnurl=http://localhost:8080/AdyenServlet/dropin.html"
+    						  ); 
+    				
     			  },
     			  onAdditionalDetails: (state, dropin) => {
+    				  loadedDropIn = dropin;
     				  
     				  switch(paymentResponse.resultCode){
     				  case "IdentifyShopper":
+    					  
     					//calling your server to make a /payments/details request
-        			      var xhttp = new XMLHttpRequest();
-        						xhttp.onreadystatechange = function() {
-        							handleResponse(this, dropin);
-        						};
-        					
-        					xhttp.open("POST", "PaymentDetails", true);
-        					xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-        					xhttp.send("paymentData="+encodeURIComponent(state.data['paymentData'])+"&type=threeDS2Fingerprintscheme&fingerprint="+encodeURIComponent(state.data.details['threeds2.fingerprint']));
-        					  
+    					makeCall("PaymentDetails",
+    							"paymentData="+encodeURIComponent(state.data['paymentData'])
+    							+"&type=threeDS2Fingerprintscheme"
+    							+"&fingerprint="+encodeURIComponent(state.data.details['threeds2.fingerprint']));
+        			      
     	                	break;
     	                	
     				  case "ChallengeShopper":
+    					  
     					//calling your server to make a /payments/details request
-        			      var xhttp = new XMLHttpRequest();
-        						xhttp.onreadystatechange = function() {
-        							handleResponse(this, dropin);
-        						};
-        					
-        					xhttp.open("POST", "PaymentDetails", true);
-        					xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-        					xhttp.send("paymentData="+encodeURIComponent(state.data['paymentData'])+"&type=threeDS2Challengescheme&challengeResult="+encodeURIComponent(state.data.details['threeds2.challengeResult']));
-        					  
+    					makeCall("PaymentDetails",
+    							"paymentData="+encodeURIComponent(state.data['paymentData'])
+    							+"&type=threeDS2Challengescheme"
+    							+"&challengeResult="+encodeURIComponent(state.data.details['threeds2.challengeResult']));
+        			      
     					  break;
     		               
     	                 default: 
     	                	console.log('default');
     		            break; 
     				  }
-    				  
-    				  
-    				
     			  }
     			})
     			.mount('#dropin');
-    	    
     }
-
-    $("#execute").submit(function(e){
-    	e.preventDefault();
-    	
-    	country = document.getElementById("country").value;
-    	currencycode = document.getElementById("currencycode").value;
-    	amount = document.getElementById("amount").value;
-    	
-    	var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-          	  //document.getElementById("txtHint").innerHTML = this.responseText;
-                loadDropIn(this.responseText)
-           }
-        };
-        xhttp.open("GET", "GetPaymentMethods?countryCode="+country+"&currency="+currencycode+"&value="+amount, true);
-        //xhttp.open("GET", "http://localhost:8080/AdyenServlet/GetPaymentMethods?countryCode=CN&currency=EUR&value=1000", true);
-        xhttp.send();
-	});
-
     
+    if(get("payload")){
+    	//alert("I was called");
+    	//calling your server to make a /payments/details request
+    	makeCall("PaymentDetails",
+    			"paymentData="+encodeURIComponent(paymentData)+
+    			"&payload="+encodeURIComponent(get("payload"))+
+    			"&type=redirectideal"
+    			);
+    }
+    
+    if(get("MD")&&get("PaRes")){
+    	//calling your server to make a /payments/details request
+    	makeCall("PaymentDetails",
+    			"paymentData="+encodeURIComponent(paymentData)
+    			+"&MD="+encodeURIComponent(get("MD"))+
+    			"&type=redirectscheme&PaRes="+encodeURIComponent(get("PaRes"))
+    			);
+    }
     
     function get(name){
   	  const parts = window.location.href.split('?');
@@ -159,61 +164,49 @@
   	  }
   	}
     
+    function makeCall(endPoint, data){
+    	var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function(){
+			handleResponse(this, loadedDropIn);
+		};
+	
+		xhttp.open("POST", endPoint, true);
+		xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+		xhttp.send(data);
+    }
+    
     function handleResponse(response, dropin){
-    	
     	if (response.readyState == 4 && response.status == 200) {
-			
 			paymentResponse = JSON.parse(response.responseText);
 			localStorage.setItem('paymentData', paymentResponse.paymentData);
                 
                 switch(paymentResponse.resultCode){
 
                 case "Authorised":
-                	dropin.setStatus('success', { message: 'Payment successful!' });
                 	//window.location.replace("Results.html?response="+encodeURIComponent(this.responseText));
                 	//document.getElementById("results").innerHTML = get("response");
                 	
                 	document.getElementById("results").innerHTML = response.responseText;
+                	loadedDropIn.setStatus('success', { message: 'Payment successful!' });
+                	break;
+                	
+                case "IdentifyShopper":
+                case "ChallengeShopper":
+                case "RedirectShopper":
+                	dropin.handleAction(paymentResponse.action);
                 	break;
 	                
 	            //Other result codes here: https://docs.adyen.com/checkout/payment-result-codes such as Received, Refused, Pending, PresentToShopper, Error, Cancelled, AuthenticationNotRequired, AuthenticationFinished
                 
                  default: 
-                	 dropin.handleAction(paymentResponse.action);
+                	document.getElementById("results").innerHTML = response.responseText;
+                	 //dropin.handleAction(paymentResponse.action);
+                	 
 	            break; 
-            }
-			
+            	}
 			}
-    	
     }
     
-    if(get("payload")){
-    	//alert("I was called");
-    	//calling your server to make a /payments/details request
-	      var xhttp = new XMLHttpRequest();
-				xhttp.onreadystatechange = function() {
-					handleResponse(this, dropin);
-				};
-			
-			xhttp.open("POST", "PaymentDetails", true);
-			xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-			xhttp.send("paymentData="+encodeURIComponent(paymentData)+"&payload="+encodeURIComponent(get("payload"))+"&type=redirectideal");
-			  
-    }
-    
-    if(get("MD")&&get("PaRes")){
-    	//alert("I was called");
-    	//calling your server to make a /payments/details request
-	      var xhttp = new XMLHttpRequest();
-				xhttp.onreadystatechange = function() {
-					handleResponse(this, dropin);
-				};
-			
-			xhttp.open("POST", "PaymentDetails", true);
-			xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-			xhttp.send("paymentData="+encodeURIComponent(paymentData)+"&MD="+encodeURIComponent(get("MD"))+"&type=redirectscheme&PaRes="+encodeURIComponent(get("PaRes")));
-			  
-    }
     
     
     
