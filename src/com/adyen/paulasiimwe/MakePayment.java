@@ -131,18 +131,30 @@ public class MakePayment extends HttpServlet {
                     paymentsRequest.setAdditionalData(additionalData);
 
                     //paymentsRequest.setRecurringProcessingModel(PaymentsRequest.RecurringProcessingModelEnum.CARD_ON_FILE);
+                    
+                    if(request.getParameter("channel").equalsIgnoreCase("web")){
+                    	paymentsRequest.setRedirectFromIssuerMethod("GET");
+                    	paymentsRequest.setOrigin("http://localhost:8080/AdyenServlet/dropin.html");
+                    	paymentsRequest.setBrowserInfo(
+                                new BrowserInfo()
+                                        .acceptHeader("\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/70.0.3538.110 Safari\\/537.36\"")
+                                        .userAgent("\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/webp,image\\/apng,*\\/*;q=0.8\"")
+                                        .language("en")
+                                        .javaEnabled(false)
+                                        .colorDepth(24)
+                                        .screenHeight(723)
+                                        .screenWidth(1536)
+                                        .timeZoneOffset(0)
+                        );
+                    }else {
+                    	paymentsRequest.setBrowserInfo(
+                                new BrowserInfo()
+                                        .acceptHeader("\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/70.0.3538.110 Safari\\/537.36\"")
+                                        .userAgent("\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/webp,image\\/apng,*\\/*;q=0.8\"")
+                                     );
+                    }
 
-                    paymentsRequest.setBrowserInfo(
-                            new BrowserInfo()
-                                    .acceptHeader("\"Mozilla\\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\\/537.36 (KHTML, like Gecko) Chrome\\/70.0.3538.110 Safari\\/537.36\"")
-                                    .userAgent("\"text\\/html,application\\/xhtml+xml,application\\/xml;q=0.9,image\\/webp,image\\/apng,*\\/*;q=0.8\"")
-                                    /*.javaEnabled(false)
-                                    .language("en")
-                                    .colorDepth(24)
-                                    .screenHeight(723)
-                                    .screenWidth(1536)
-                                    .timeZoneOffset(0)*/
-                    );
+                    
                     
 //                    paymentsRequest.shopperReference("VickVickersonJr1985");
 //                    paymentsRequest.setShopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE);
@@ -271,7 +283,8 @@ public class MakePayment extends HttpServlet {
             }
             
             //NOT RECOMMENDED FOR PRODUCTION LEVEL
-            paymentsRequest.setRedirectFromIssuerMethod("GET");
+            
+            
             
             paymentsRequest.setChannel(
             		PaymentsRequest.ChannelEnum.fromValue(
@@ -304,9 +317,12 @@ public class MakePayment extends HttpServlet {
             		JSONObject responseAction = responseJson.getJSONObject("action");
             		
             		//If method is POST, add the data JSON object from the root level response to the action JSON Object
-            		if(responseAction.getString("method").equalsIgnoreCase("POST")){
-            			responseAction.put("data", responseJson.getJSONObject("redirect").getJSONObject("data"));
+            		if(responseAction.has("method")) {
+            			if(responseAction.getString("method").equalsIgnoreCase("POST")){
+                			responseAction.put("data", responseJson.getJSONObject("redirect").getJSONObject("data"));
+                		}
             		}
+            		
             		
             		//Add payment data from the root level response to the action JSON object
             		responseAction.put("paymentData", paymentsResponse.getPaymentData());

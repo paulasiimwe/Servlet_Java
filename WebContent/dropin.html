@@ -88,7 +88,40 @@
     			  },
     			  onAdditionalDetails: (state, dropin) => {
     				  
-    			      alert("Triggered");
+    				  switch(paymentResponse.resultCode){
+    				  case "IdentifyShopper":
+    					//calling your server to make a /payments/details request
+        			      var xhttp = new XMLHttpRequest();
+        						xhttp.onreadystatechange = function() {
+        							handleResponse(this, dropin);
+        						};
+        					
+        					xhttp.open("POST", "PaymentDetails", true);
+        					xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        					xhttp.send("paymentData="+encodeURIComponent(state.data['paymentData'])+"&type=threeDS2Fingerprintscheme&fingerprint="+encodeURIComponent(state.data.details['threeds2.fingerprint']));
+        					  
+    	                	break;
+    	                	
+    				  case "ChallengeShopper":
+    					//calling your server to make a /payments/details request
+        			      var xhttp = new XMLHttpRequest();
+        						xhttp.onreadystatechange = function() {
+        							handleResponse(this, dropin);
+        						};
+        					
+        					xhttp.open("POST", "PaymentDetails", true);
+        					xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        					xhttp.send("paymentData="+encodeURIComponent(state.data['paymentData'])+"&type=threeDS2Challengescheme&challengeResult="+encodeURIComponent(state.data.details['threeds2.challengeResult']));
+        					  
+    					  break;
+    		               
+    	                 default: 
+    	                	console.log('default');
+    		            break; 
+    				  }
+    				  
+    				  
+    				
     			  }
     			})
     			.mount('#dropin');
@@ -113,9 +146,47 @@
         //xhttp.open("GET", "http://localhost:8080/AdyenServlet/GetPaymentMethods?countryCode=CN&currency=EUR&value=1000", true);
         xhttp.send();
 	});
-    
-    //console.log(get("payload"));
 
+    
+    
+    function get(name){
+  	  const parts = window.location.href.split('?');
+  	  if (parts.length > 1) {
+  	    name = encodeURIComponent(name);
+  	    const params = parts[1].split('&');
+  	    const found = params.filter(el => (el.split('=')[0] === name) && el);
+  	    if (found.length) return decodeURIComponent(found[0].split('=')[1]);
+  	  }
+  	}
+    
+    function handleResponse(response, dropin){
+    	
+    	if (response.readyState == 4 && response.status == 200) {
+			
+			paymentResponse = JSON.parse(response.responseText);
+			localStorage.setItem('paymentData', paymentResponse.paymentData);
+                
+                switch(paymentResponse.resultCode){
+
+                case "Authorised":
+                	dropin.setStatus('success', { message: 'Payment successful!' });
+                	//window.location.replace("Results.html?response="+encodeURIComponent(this.responseText));
+                	//document.getElementById("results").innerHTML = get("response");
+                	
+                	document.getElementById("results").innerHTML = response.responseText;
+                	break;
+	                
+	            //Other result codes here: https://docs.adyen.com/checkout/payment-result-codes such as Received, Refused, Pending, PresentToShopper, Error, Cancelled, AuthenticationNotRequired, AuthenticationFinished
+                
+                 default: 
+                	 dropin.handleAction(paymentResponse.action);
+	            break; 
+            }
+			
+			}
+    	
+    }
+    
     if(get("payload")){
     	//alert("I was called");
     	//calling your server to make a /payments/details request
@@ -142,49 +213,6 @@
 			xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
 			xhttp.send("paymentData="+encodeURIComponent(paymentData)+"&MD="+encodeURIComponent(get("MD"))+"&type=redirectscheme&PaRes="+encodeURIComponent(get("PaRes")));
 			  
-    }
-    
-    function get(name){
-  	  const parts = window.location.href.split('?');
-  	  if (parts.length > 1) {
-  	    name = encodeURIComponent(name);
-  	    const params = parts[1].split('&');
-  	    const found = params.filter(el => (el.split('=')[0] === name) && el);
-  	    if (found.length) return decodeURIComponent(found[0].split('=')[1]);
-  	  }
-  	}
-    
-    function handleResponse(response, dropin){
-    	
-    	if (response.readyState == 4 && response.status == 200) {
-			
-			paymentResponse = JSON.parse(response.responseText);
-			localStorage.setItem('paymentData', paymentResponse.paymentData);
-                
-                switch(paymentResponse.resultCode){
-
-                case "Authorised":
-                	//dropin.setStatus('success', { message: 'Payment successful!' });
-                	//window.location.replace("Results.html?response="+encodeURIComponent(this.responseText));
-                	//document.getElementById("results").innerHTML = get("response");
-                	
-                	document.getElementById("results").innerHTML = response.responseText;
-                	break;
-                
-                case "RedirectShopper":
-                	
-                	dropin.handleAction(paymentResponse.action);
-	                break;
-	                
-	            //Other result codes here: https://docs.adyen.com/checkout/payment-result-codes such as Received, Refused, Pending, PresentToShopper, Error, Cancelled, AuthenticationNotRequired, AuthenticationFinished
-                
-                 default: 
-                	console.log('default');
-	            break; 
-            }
-			
-			}
-    	
     }
     
     
