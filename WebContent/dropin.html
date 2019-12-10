@@ -96,6 +96,7 @@
     				   makeCall("MakePayment",
     						  "data=" + encodeURIComponent(JSON.stringify(state.data.paymentMethod))
     						  +"&currency="+currencycode
+    						  +"&countryCode="+country
     						  +"&value="+amount
     						  +"&channel=Web"
     						  +"&returnurl=http://localhost:8080/AdyenServlet/dropin.html"
@@ -123,7 +124,6 @@
     							"paymentData="+encodeURIComponent(state.data['paymentData'])
     							+"&type=threeDS2Challengescheme"
     							+"&challengeResult="+encodeURIComponent(state.data.details['threeds2.challengeResult']));
-        			      
     					  break;
     		               
     	                 default: 
@@ -151,6 +151,16 @@
     			"paymentData="+encodeURIComponent(paymentData)
     			+"&MD="+encodeURIComponent(get("MD"))+
     			"&type=redirectscheme&PaRes="+encodeURIComponent(get("PaRes"))
+    			);
+    }
+    
+    if(get("redirectResult")){
+    	//alert("I was called");
+    	//calling your server to make a /payments/details request
+    	makeCall("PaymentDetails",
+    			"paymentData="+encodeURIComponent(paymentData)+
+    			"&redirectResult="+encodeURIComponent(get("redirectResult"))+
+    			"&type=redirectklarna"
     			);
     }
     
