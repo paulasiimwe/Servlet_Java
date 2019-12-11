@@ -2,7 +2,9 @@ package com.adyen.paulasiimwe;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,6 +20,8 @@ import com.adyen.model.Amount;
 import com.adyen.model.BrowserInfo;
 import com.adyen.model.Name;
 import com.adyen.model.Name.GenderEnum;
+import com.adyen.model.Split;
+import com.adyen.model.SplitAmount;
 import com.adyen.model.checkout.DefaultPaymentMethodDetails;
 import com.adyen.model.checkout.LineItem;
 import com.adyen.model.checkout.LineItem.TaxCategoryEnum;
@@ -36,6 +40,7 @@ public class MakePayment extends HttpServlet {
 	
 	Client client;
 	Checkout checkout;
+	Boolean marketPay = true;
 	
 	private static final long serialVersionUID = 1L;
        
@@ -74,6 +79,42 @@ public class MakePayment extends HttpServlet {
 				);
 		paymentsRequest.setAmount(amount);
 		
+		
+		String reference = generateString();
+        paymentsRequest.setReference(reference);
+		
+		if(marketPay) {
+			SplitAmount subMerchantSplitAmount = new SplitAmount();
+			subMerchantSplitAmount.setCurrency(amount.getCurrency());
+			subMerchantSplitAmount.setValue((long) ((amount.getValue())*0.9));
+			
+			Split subMerchantSplit = new Split();
+			subMerchantSplit.setAmount(subMerchantSplitAmount);
+			subMerchantSplit.setAccount("8815756263128205");//Account Code for TestAccountHolder01
+			subMerchantSplit.setDescription("Porcelain Doll: Eliza (20cm)");
+			subMerchantSplit.setType(Split.TypeEnum.MARKETPLACE);
+			subMerchantSplit.setReference(reference+"_sm");
+			
+			
+			SplitAmount marketPlaceSplitAmount = new SplitAmount();
+			marketPlaceSplitAmount.setCurrency(amount.getCurrency());
+			marketPlaceSplitAmount.setValue((
+					amount.getValue()-((long) ((amount.getValue())*0.9))
+					));//Remainder after deducting 90% of amount
+			
+			Split marketPlaceSplit = new Split();
+			marketPlaceSplit.setAmount(marketPlaceSplitAmount);
+			marketPlaceSplit.setType(Split.TypeEnum.COMMISSION);
+			marketPlaceSplit.setReference(reference+"_mp");
+			
+			
+			
+			List<Split> splits = new ArrayList<Split>();
+			splits.add(subMerchantSplit);
+			splits.add(marketPlaceSplit);
+			paymentsRequest.setSplits(splits);
+		}
+		
 		JSONObject paymentComponentData;
 		
 		
@@ -96,8 +137,7 @@ public class MakePayment extends HttpServlet {
 		
 		try{
 
-            paymentsRequest.setReference(generateString());
-            
+			
             
 
             DefaultPaymentMethodDetails dm  = new DefaultPaymentMethodDetails();
