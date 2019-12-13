@@ -15,11 +15,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import com.adyen.Client;
 import com.adyen.enums.Environment;
-import com.adyen.model.Address;
 import com.adyen.model.Amount;
 import com.adyen.model.BrowserInfo;
-import com.adyen.model.Name;
-import com.adyen.model.Name.GenderEnum;
 import com.adyen.model.Split;
 import com.adyen.model.SplitAmount;
 import com.adyen.model.checkout.DefaultPaymentMethodDetails;
@@ -81,7 +78,7 @@ public class MakePayment extends HttpServlet {
 		
 		
 		String reference = generateString();
-        paymentsRequest.setReference(reference);
+        paymentsRequest.setReference("M"+reference);
 		
 		if(marketPay) {
 			SplitAmount subMerchantSplitAmount = new SplitAmount();
