@@ -47,9 +47,9 @@
 	var currencycode;
 	var amount;
 	var paymentData = localStorage.getItem('paymentData');
-	var loadedDropIn;
 	var configuration;
 	var checkout;
+	var loadedComponent;
 	
 	var isValid = false;
 	var stateData;
@@ -103,14 +103,22 @@
     	var selectedPaymentMethod = selectCtrl.options[selectCtrl.selectedIndex];
     	console.log(selectedPaymentMethod.value);
     	
+    	document.getElementById('component-container').innerHTML = "";//empties the div
     	switch(selectedPaymentMethod.value) {
     	  case "scheme":
     		  const card = checkout.create("card").mount("#component-container");
     	    // code block
     	    break;
     	  case "ideal":
+    		  const ideal = checkout.create('ideal', {
+    			    showImage: true, // Optional. Set to **false** to remove the bank logos from the iDEAL form.
+    			    issuer: "0031" // Optional. Set this to an **id** of an iDEAL issuer to preselect it.
+    			 }).mount('#component-container');
     	    // code block
     	    break;
+    	  case 'klarna_paynow':
+    		  document.getElementById('component-container').innerHTML = "<p>Press Pay</p>";
+    		  break;
     	  default:
     	    // code block
     	}
@@ -122,14 +130,52 @@
     	if(isValid){
     		console.log("valid");
     		//make payment
+    		makeCall("MakePayment",
+					  "data=" + encodeURIComponent(JSON.stringify(stateData.paymentMethod))
+					  +"&currency="+currencycode
+					  +"&countryCode="+country
+					  +"&value="+amount
+					  +"&channel=Web"
+					  +"&returnurl=http://localhost:8080/AdyenServlet/components.html"
+					  );
+    	}else{
+    		//Manually create the payment component data
+        	
+        	var selectCtrl = document.getElementById("dropDown");
+        	var selectedPaymentMethod = selectCtrl.options[selectCtrl.selectedIndex];
+        	
+        	switch(selectedPaymentMethod.value) {
+      	  		
+      	  		case "ideal":
+      		  		
+      	    		break;
+      	  		case "klarna_account":
+            	case "klarna_paynow":
+            	case "klarna":
+      	  		makeCall("MakePayment",
+  					  "data=" + encodeURIComponent("{\"type\": "+selectedPaymentMethod.value+"}")
+  					  +"&currency="+currencycode
+  					  +"&countryCode="+country
+  					  +"&value="+amount
+  					  +"&channel=Web"
+  					  +"&returnurl=http://localhost:8080/AdyenServlet/components.html"
+  					  );
+      		  		break;
+      	  		default:
+      	    // code block
+      		}
     	}
+    	
+    	
+    	
+    	
 	});
 	
 	
 	   function handleOnChange(state, component) {
 	       isValid = state.isValid // True or false. Specifies if all the information that the shopper provided is valid.
 	       stateData = state.data // Provides the data that you need to pass in the `/payments` call.
-	       component // Provides the active component instance that called this event.
+	       loadedComponent = component // Provides the active component instance that called this event.
 	   }
 	 
 	   function handleOnAdditionalDetails(state, component) {
@@ -146,215 +192,93 @@
 
 	       document.getElementById(comboBoxID).options.add(optionItem);
 	   }
+	   
+	   function makeCall(endPoint, data){
+	    	var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function(){
+				handleResponse(this, loadedComponent);
+			};
+		
+			xhttp.open("POST", endPoint, true);
+			xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+			xhttp.send(data);
+	    }
+	   
+	   function handleResponse(response, component){
+	    	if (response.readyState == 4 && response.status == 200) {
+				paymentResponse = JSON.parse(response.responseText);
+				localStorage.setItem('paymentData', paymentResponse.paymentData);
+	                
+	                switch(paymentResponse.resultCode){
+
+	                case "Authorised":
+	                	//window.location.replace("Results.html?response="+encodeURIComponent(this.responseText));
+	                	//document.getElementById("results").innerHTML = get("response");
+	                	
+	                	document.getElementById("results").innerHTML = response.responseText;
+	                	//loadedDropIn.setStatus('success', { message: 'Payment successful!' });
+	                	break;
+	                	
+	                case "IdentifyShopper":
+	                case "ChallengeShopper":
+	                case "RedirectShopper":
+	                	//dropin.handleAction(paymentResponse.action);
+	                	document.getElementById('component-container').innerHTML = "";//empties the div
+	                	checkout.createFromAction(paymentResponse.action).mount('#component-container');
+	                	break;
+		                
+		            //Other result codes here: https://docs.adyen.com/checkout/payment-result-codes such as Received, Refused, Pending, PresentToShopper, Error, Cancelled, AuthenticationNotRequired, AuthenticationFinished
+	                
+	                 default: 
+	                	document.getElementById("results").innerHTML = response.responseText;
+	                	 //dropin.handleAction(paymentResponse.action);
+	                	 
+		            break; 
+	            	}
+				}
+	    }
+	   
+	   function get(name){
+		  	  const parts = window.location.href.split('?');
+		  	  if (parts.length > 1) {
+		  	    name = encodeURIComponent(name);
+		  	    const params = parts[1].split('&');
+		  	    const found = params.filter(el => (el.split('=')[0] === name) && el);
+		  	    if (found.length) return decodeURIComponent(found[0].split('=')[1]);
+		  	  }
+		  	}
+	   
+	   if(get("payload")){
+	    	//alert("I was called");
+	    	//calling your server to make a /payments/details request
+	    	makeCall("PaymentDetails",
+	    			"paymentData="+encodeURIComponent(paymentData)+
+	    			"&payload="+encodeURIComponent(get("payload"))+
+	    			"&type=redirectideal"
+	    			);
+	    }
+	    
+	    if(get("MD")&&get("PaRes")){
+	    	//calling your server to make a /payments/details request
+	    	makeCall("PaymentDetails",
+	    			"paymentData="+encodeURIComponent(paymentData)
+	    			+"&MD="+encodeURIComponent(get("MD"))+
+	    			"&type=redirectscheme&PaRes="+encodeURIComponent(get("PaRes"))
+	    			);
+	    }
+	    
+	    if(get("redirectResult")){
+	    	//alert("I was called");
+	    	//calling your server to make a /payments/details request
+	    	makeCall("PaymentDetails",
+	    			"paymentData="+encodeURIComponent(paymentData)+
+	    			"&redirectResult="+encodeURIComponent(get("redirectResult"))+
+	    			"&type=redirectklarna"
+	    			);
+	    }
 	 
 	   
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-    
-    /* function loadDropIn(paymentMethodsResponse){
-    	document.getElementById("dropin").innerHTML = "";
-    	
-    	const configuration = {
-    			  locale: "en-US",
-    			  environment: "test",
-    			  originKey: "pub.v2.8215688115660117.aHR0cDovL2xvY2FsaG9zdDo4MDgw.SoZ2ZK3oFwYrZbURZKTwPnFeYzxgAFMucCxvUPgxpS8",
-    			  paymentMethodsResponse: JSON.parse(paymentMethodsResponse)
-    			};
-    			const checkout = new AdyenCheckout(configuration);
-
-    			const dropin = checkout
-    			.create('dropin', {
-    			  paymentMethodsConfiguration: {
-    			    applepay: { // Example required configuration for Apple Pay
-    			      configuration: {
-    			        merchantName: 'PaulAsiimwe', // Name to be displayed on the form
-    			        merchantIdentifier: 'adyen.test.merchant' // Your Apple merchant identifier as described in https://developer.apple.com/documentation/apple_pay_on_the_web/applepayrequest/2951611-merchantidentifier
-    			      }
-    			    },
-    			    paywithgoogle: { // Example required configuration for Google Pay
-    			      environment: "TEST", // Change this to PRODUCTION when you're ready to accept live Google Pay payments
-    			      configuration: {
-    			       gatewayMerchantId: "PaulAsiimwe", // Your Adyen merchant or company account name
-    			       merchantIdentifier: "12345678910111213141" // Your Google Merchant ID as described in https://developers.google.com/pay/api/web/guides/test-and-deploy/deploy-production-environment#obtain-your-merchantID
-    			      }
-    			    },
-    			    card: { // Example optional configuration for Cards
-    			      hasHolderName: true,
-    			      holderNameRequired: true,
-    			      enableStoreDetails: true,
-    			      name: 'Credit or debit card'
-    			    }
-    			  },
-    			  onSubmit: (state, dropin) => {
-    				  
-    				  loadedDropIn = dropin;
-    				  //console.log(JSON.stringify(state.data.paymentMethod));
-    				  
-    				   makeCall("MakePayment",
-    						  "data=" + encodeURIComponent(JSON.stringify(state.data.paymentMethod))
-    						  +"&currency="+currencycode
-    						  +"&countryCode="+country
-    						  +"&value="+amount
-    						  +"&channel=Web"
-    						  +"&returnurl=http://localhost:8080/AdyenServlet/dropin.html"
-    						  ); 
-    				
-    			  },
-    			  onAdditionalDetails: (state, dropin) => {
-    				  loadedDropIn = dropin;
-    				  
-    				  switch(paymentResponse.resultCode){
-    				  case "IdentifyShopper":
-    					  
-    					//calling your server to make a /payments/details request
-    					makeCall("PaymentDetails",
-    							"paymentData="+encodeURIComponent(state.data['paymentData'])
-    							+"&type=threeDS2Fingerprintscheme"
-    							+"&fingerprint="+encodeURIComponent(state.data.details['threeds2.fingerprint']));
-        			      
-    	                	break;
-    	                	
-    				  case "ChallengeShopper":
-    					  
-    					//calling your server to make a /payments/details request
-    					makeCall("PaymentDetails",
-    							"paymentData="+encodeURIComponent(state.data['paymentData'])
-    							+"&type=threeDS2Challengescheme"
-    							+"&challengeResult="+encodeURIComponent(state.data.details['threeds2.challengeResult']));
-    					  break;
-    		               
-    	                 default: 
-    	                	console.log('default');
-    		            break; 
-    				  }
-    			  }
-    			})
-    			.mount('#dropin');
-    }
-    
-    if(get("payload")){
-    	//alert("I was called");
-    	//calling your server to make a /payments/details request
-    	makeCall("PaymentDetails",
-    			"paymentData="+encodeURIComponent(paymentData)+
-    			"&payload="+encodeURIComponent(get("payload"))+
-    			"&type=redirectideal"
-    			);
-    }
-    
-    if(get("MD")&&get("PaRes")){
-    	//calling your server to make a /payments/details request
-    	makeCall("PaymentDetails",
-    			"paymentData="+encodeURIComponent(paymentData)
-    			+"&MD="+encodeURIComponent(get("MD"))+
-    			"&type=redirectscheme&PaRes="+encodeURIComponent(get("PaRes"))
-    			);
-    }
-    
-    if(get("redirectResult")){
-    	//alert("I was called");
-    	//calling your server to make a /payments/details request
-    	makeCall("PaymentDetails",
-    			"paymentData="+encodeURIComponent(paymentData)+
-    			"&redirectResult="+encodeURIComponent(get("redirectResult"))+
-    			"&type=redirectklarna"
-    			);
-    }
-    
-    function get(name){
-  	  const parts = window.location.href.split('?');
-  	  if (parts.length > 1) {
-  	    name = encodeURIComponent(name);
-  	    const params = parts[1].split('&');
-  	    const found = params.filter(el => (el.split('=')[0] === name) && el);
-  	    if (found.length) return decodeURIComponent(found[0].split('=')[1]);
-  	  }
-  	}
-    
-    function makeCall(endPoint, data){
-    	var xhttp = new XMLHttpRequest();
-		xhttp.onreadystatechange = function(){
-			handleResponse(this, loadedDropIn);
-		};
-	
-		xhttp.open("POST", endPoint, true);
-		xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-		xhttp.send(data);
-    }
-    
-    function handleResponse(response, dropin){
-    	if (response.readyState == 4 && response.status == 200) {
-			paymentResponse = JSON.parse(response.responseText);
-			localStorage.setItem('paymentData', paymentResponse.paymentData);
-                
-                switch(paymentResponse.resultCode){
-
-                case "Authorised":
-                	//window.location.replace("Results.html?response="+encodeURIComponent(this.responseText));
-                	//document.getElementById("results").innerHTML = get("response");
-                	
-                	document.getElementById("results").innerHTML = response.responseText;
-                	loadedDropIn.setStatus('success', { message: 'Payment successful!' });
-                	break;
-                	
-                case "IdentifyShopper":
-                case "ChallengeShopper":
-                case "RedirectShopper":
-                	dropin.handleAction(paymentResponse.action);
-                	break;
-	                
-	            //Other result codes here: https://docs.adyen.com/checkout/payment-result-codes such as Received, Refused, Pending, PresentToShopper, Error, Cancelled, AuthenticationNotRequired, AuthenticationFinished
-                
-                 default: 
-                	document.getElementById("results").innerHTML = response.responseText;
-                	 //dropin.handleAction(paymentResponse.action);
-                	 
-	            break; 
-            	}
-			}
-    } */
     
     
     

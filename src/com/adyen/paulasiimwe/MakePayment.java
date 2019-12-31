@@ -37,7 +37,7 @@ public class MakePayment extends HttpServlet {
 	
 	Client client;
 	Checkout checkout;
-	Boolean marketPay = true;
+	Boolean marketPay = false;
 	
 	private static final long serialVersionUID = 1L;
        
