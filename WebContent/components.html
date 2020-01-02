@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Adyen Pay</title>
 
-<link rel="stylesheet" href="https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.css"/>
+<link rel="stylesheet" href="https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.3.0/adyen.css"/>
 </head>
 
 <body>
@@ -47,12 +47,23 @@
 	var currencycode;
 	var amount;
 	var paymentData = localStorage.getItem('paymentData');
-	var configuration;
-	var checkout;
+	//var configuration;
+	//var checkout;
 	var loadedComponent;
+	var isRedirect = false;
 	
 	var isValid = false;
 	var stateData;
+	
+			const configuration = {
+		       locale: "en_US",
+		       environment: "test",
+		       originKey: "pub.v2.8215688115660117.aHR0cDovL2xvY2FsaG9zdDo4MDgw.SoZ2ZK3oFwYrZbURZKTwPnFeYzxgAFMucCxvUPgxpS8",
+		       onChange: handleOnChange,
+		       onAdditionalDetails: handleOnAdditionalDetails
+		   };
+		 
+		   const checkout = new AdyenCheckout(configuration);
 
 	$("#execute").submit(function(e){
     	e.preventDefault();
@@ -69,16 +80,7 @@
                 
                 var paymentMethods = JSON.parse(this.responseText);
                 
-            			configuration = {
-            		       locale: "en_US",
-            		       environment: "test",
-            		       originKey: "pub.v2.8215688115660117.aHR0cDovL2xvY2FsaG9zdDo4MDgw.SoZ2ZK3oFwYrZbURZKTwPnFeYzxgAFMucCxvUPgxpS8",
-            		       paymentMethodsResponse: paymentMethods,
-            		       onChange: handleOnChange,
-            		       onAdditionalDetails: handleOnAdditionalDetails
-            		   };
-            		 
-            		   checkout = new AdyenCheckout(configuration);
+            			
             		   console.log(JSON.parse(this.responseText));
             		   
             		   document.getElementById("dropDown").options.length = 0;
@@ -98,6 +100,7 @@
 	});
 	
 	$("#load").submit(function(e){
+		isRedirect = false;
     	e.preventDefault();
     	var selectCtrl = document.getElementById("dropDown");
     	var selectedPaymentMethod = selectCtrl.options[selectCtrl.selectedIndex];
@@ -106,7 +109,11 @@
     	document.getElementById('component-container').innerHTML = "";//empties the div
     	switch(selectedPaymentMethod.value) {
     	  case "scheme":
-    		  const card = checkout.create("card").mount("#component-container");
+    		  //const card = checkout.create("card").mount("#component-container");
+    		  const card = checkout.create("card", {
+    		         hasHolderName: true,
+    		         holderNameRequired: true
+    		     }).mount("#component-container");
     	    // code block
     	    break;
     	  case "ideal":
@@ -116,9 +123,14 @@
     			 }).mount('#component-container');
     	    // code block
     	    break;
-    	  case 'klarna_paynow':
+    	  case "klarna_account":
+      	case "klarna_paynow":
+      	case "klarna":
+    	case "paypal":
+    			isRedirect = true;
     		  document.getElementById('component-container').innerHTML = "<p>Press Pay</p>";
     		  break;
+    		  
     	  default:
     	    // code block
     	}
@@ -127,31 +139,18 @@
 	$("#pay").submit(function(e){
     	e.preventDefault();
     	
-    	if(isValid){
-    		console.log("valid");
-    		//make payment
-    		makeCall("MakePayment",
-					  "data=" + encodeURIComponent(JSON.stringify(stateData.paymentMethod))
-					  +"&currency="+currencycode
-					  +"&countryCode="+country
-					  +"&value="+amount
-					  +"&channel=Web"
-					  +"&returnurl=http://localhost:8080/AdyenServlet/components.html"
-					  );
-    	}else{
-    		//Manually create the payment component data
+    	if(isRedirect){
+			//Manually create the payment component data
         	
         	var selectCtrl = document.getElementById("dropDown");
         	var selectedPaymentMethod = selectCtrl.options[selectCtrl.selectedIndex];
         	
         	switch(selectedPaymentMethod.value) {
       	  		
-      	  		case "ideal":
-      		  		
-      	    		break;
       	  		case "klarna_account":
             	case "klarna_paynow":
             	case "klarna":
+            	case "paypal":
       	  		makeCall("MakePayment",
   					  "data=" + encodeURIComponent("{\"type\": "+selectedPaymentMethod.value+"}")
   					  +"&currency="+currencycode
@@ -164,16 +163,31 @@
       	  		default:
       	    // code block
       		}
+    	}else{
+    		if(isValid){
+        		console.log("valid");
+        		//make payment
+        		makeCall("MakePayment",
+    					  "data=" + encodeURIComponent(JSON.stringify(stateData.paymentMethod))
+    					  +"&currency="+currencycode
+    					  +"&countryCode="+country
+    					  +"&value="+amount
+    					  +"&channel=Web"
+    					  +"&returnurl=http://localhost:8080/AdyenServlet/components.html"
+    					  );
+        	}
     	}
-    	
-    	
-    	
     	
 	});
 	
 	
 	   function handleOnChange(state, component) {
 	       isValid = state.isValid // True or false. Specifies if all the information that the shopper provided is valid.
+	       if(isValid){
+	    	   document.getElementById("pay").disabled = false;
+	       }else{
+	    	   document.getElementById("pay").disabled = true;
+	       }
 	       stateData = state.data // Provides the data that you need to pass in the `/payments` call.
 	       loadedComponent = component // Provides the active component instance that called this event.
 	   }
@@ -181,8 +195,34 @@
 	   function handleOnAdditionalDetails(state, component) {
 	       state.data // Provides the data that you need to pass in the `/payments/details` call.
 	       component // Provides the active component instance that called this event.
+	       
+	       switch(paymentResponse.resultCode){
+			  case "IdentifyShopper":
+				  
+				//calling your server to make a /payments/details request
+				makeCall("PaymentDetails",
+						"paymentData="+encodeURIComponent(state.data['paymentData'])
+						+"&type=threeDS2Fingerprintscheme"
+						+"&fingerprint="+encodeURIComponent(state.data.details['threeds2.fingerprint']));
+			      
+             	break;
+             	
+			  case "ChallengeShopper":
+				  
+				//calling your server to make a /payments/details request
+				makeCall("PaymentDetails",
+						"paymentData="+encodeURIComponent(state.data['paymentData'])
+						+"&type=threeDS2Challengescheme"
+						+"&challengeResult="+encodeURIComponent(state.data.details['threeds2.challengeResult']));
+				  break;
+	               
+              default: 
+             	console.log('default');
+	            break; 
+			  }
 	   }
 	   
+	   //Adds options to the dropDown comboBox
 	   function addOption(comboBoxID, displayText, displayValue)
 	   {
 	       var optionItem = document.createElement("option");
