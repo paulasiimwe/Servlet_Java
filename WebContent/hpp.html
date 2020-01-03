@@ -49,10 +49,6 @@ $("#execute").submit(function(e){
         	document.getElementById("results").innerHTML = this.responseText;
         	console.log(this.responseText);
         	
-        	document.getElementById("sig").value = this.responseText;
-        	document.getElementById("pa").value = amount;
-        	document.getElementById("cc").value = currencycode;
-        	
         	//https://ca-test.adyen.com/ca/ca/skin/checkhmac.shtml
         	//https://test.adyen.com/hpp/select.shtml
         	
@@ -75,8 +71,6 @@ $("#execute").submit(function(e){
 	xhttp.send(country+"&currency="+currencycode+"&value="+amount);
 });
 
-//This function below failed to send the form data in URL encoded format that Adyen could correctly decode like it does for the html form. 
-	
 function post_to_url(path, params, method) {
     method = method || "post";
 
@@ -100,6 +94,20 @@ function post_to_url(path, params, method) {
 
     document.body.appendChild(form);
     form.submit();
+}
+
+function get(name){
+	  const parts = window.location.href.split('?');
+	  if (parts.length > 1) {
+	    name = encodeURIComponent(name);
+	    const params = parts[1].split('&');
+	    const found = params.filter(el => (el.split('=')[0] === name) && el);
+	    if (found.length) return decodeURIComponent(found[0].split('=')[1]);
+	  }
+	}
+	
+if(get("authResult")){
+	document.getElementById("results").innerHTML = get("authResult") +"\n"+ get("paymentMethod") +"\n"+ get("pspReference");
 }
 
 
