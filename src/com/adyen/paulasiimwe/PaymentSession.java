@@ -76,6 +76,11 @@ public class PaymentSession extends HttpServlet {
 			paymentSessionRequest.setChannel(PaymentSessionRequest.ChannelEnum.WEB);
 		}
 		
+		if(paymentSessionRequest.getChannel()==PaymentSessionRequest.ChannelEnum.WEB) {
+			paymentSessionRequest.setOrigin("http://localhost:8080");
+			paymentSessionRequest.setSdkVersion(request.getParameter("sdkVersion"));
+		}
+		
 		paymentSessionRequest.setAmount(amount);
 		
 		try {
