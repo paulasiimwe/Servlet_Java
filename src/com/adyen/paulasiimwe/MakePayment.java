@@ -305,6 +305,7 @@ public class MakePayment extends HttpServlet {
                     break;
                     
                 case "directEbanking":
+                case "trustly":
                 	dm.setType(paymentMethodType);
 
                     paymentsRequest.setPaymentMethod(dm);
