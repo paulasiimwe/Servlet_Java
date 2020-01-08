@@ -128,6 +128,8 @@
       	case "klarna":
     	case "paypal":
     	case "trusty":
+        case "facilypay_3x":
+        case "facilypay_4x":
     			isRedirect = true;
     		  document.getElementById('component-container').innerHTML = "<p>Press Pay</p>";
     		  break;
@@ -152,6 +154,8 @@
             	case "klarna_paynow":
             	case "klarna":
             	case "paypal":
+                case "facilypay_3x":
+                case "facilypay_4x":
       	  		makeCall("MakePayment",
   					  "data=" + encodeURIComponent("{\"type\": "+selectedPaymentMethod.value+"}")
   					  +"&currency="+currencycode

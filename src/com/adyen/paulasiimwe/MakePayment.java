@@ -3,6 +3,7 @@ package com.adyen.paulasiimwe;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -15,8 +16,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import com.adyen.Client;
 import com.adyen.enums.Environment;
+import com.adyen.model.Address;
 import com.adyen.model.Amount;
 import com.adyen.model.BrowserInfo;
+import com.adyen.model.Name;
+import com.adyen.model.Name.GenderEnum;
 import com.adyen.model.Split;
 import com.adyen.model.SplitAmount;
 import com.adyen.model.checkout.DefaultPaymentMethodDetails;
@@ -306,9 +310,81 @@ public class MakePayment extends HttpServlet {
                     
                 case "directEbanking":
                 case "trustly":
+                
                 	dm.setType(paymentMethodType);
 
                     paymentsRequest.setPaymentMethod(dm);
+                	break;
+                	
+                	
+                case "facilypay_3x":
+                case "facilypay_4x":
+                	
+                	dm.setType(paymentMethodType);
+
+                    paymentsRequest.setPaymentMethod(dm);
+                    
+                    paymentsRequest.setShopperLocale("en_US");
+                    
+                    paymentsRequest.setCountryCode("FR");
+                    
+                    paymentsRequest.setShopperEmail("simonhopper@test.adyen.com");
+                    paymentsRequest.setShopperReference("simonhopper@test.adyen.com");
+                    
+                    paymentsRequest.setTelephoneNumber("0123456789");
+                    Date birthDate = new Date();
+                    birthDate.setDate(30);
+                    birthDate.setMonth(7);
+                    birthDate.setYear(85);
+                    paymentsRequest.setDateOfBirth(birthDate);
+                    
+                    Name shopperName = new Name();
+                    shopperName.setFirstName("Simon");
+                    shopperName.setLastName("Hopper");
+                    shopperName.setGender(GenderEnum.MALE);
+                    paymentsRequest.setShopperName(shopperName);
+                    
+                    Address billingAddress = new Address();
+                    billingAddress.setCity("UGINE");
+                    billingAddress.setCountry("FR");
+                    billingAddress.setPostalCode("73400");
+                    billingAddress.setStreet("Rue du Centenaire");
+                    billingAddress.setHouseNumberOrName("461");
+                    paymentsRequest.setBillingAddress(billingAddress);
+                    
+                    Address deliveryAddress = new Address();
+                    deliveryAddress.setCity("UGINE");
+                    deliveryAddress.setCountry("FR");
+                    deliveryAddress.setPostalCode("73400");
+                    deliveryAddress.setStreet("Rue du Centenaire");
+                    deliveryAddress.setHouseNumberOrName("461");
+                    paymentsRequest.setDeliveryAddress(deliveryAddress);
+                    
+                    
+                    
+                    
+                    LineItem lineItem1 = new LineItem();
+                    lineItem1.setAmountIncludingTax(Long.valueOf(
+    						request.getParameter("value")
+    						)
+    				);
+                    lineItem1.setAmountIncludingTax(Long.valueOf(
+    						request.getParameter("value")
+    						));
+                    lineItem1.setAmountExcludingTax(Long.valueOf(
+    						request.getParameter("value")
+    						));
+                    lineItem1.setQuantity(1L);
+                    lineItem1.setDescription("Stuff");
+                    lineItem1.setId("Item1");
+                    lineItem1.setTaxAmount(0L);
+                    lineItem1.setTaxCategory(TaxCategoryEnum.NONE);
+                    paymentsRequest.addLineItemsItem(lineItem1);
+                    
+                    
+                    HashMap<String, String> oneyAdditionalData = new HashMap<>();
+                    oneyAdditionalData.put("merchant_pays", "true");
+                    paymentsRequest.setAdditionalData(oneyAdditionalData);
                 	break;
             }
 
