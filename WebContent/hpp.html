@@ -2,7 +2,7 @@
 
 <head>
 <meta charset="utf-8">
-<title>Adyen Pay</title>
+<title>HPP Pay</title>
 
 <link rel="stylesheet" href="https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.2.0/adyen.css"/>
 </head>
@@ -54,7 +54,7 @@ $("#execute").submit(function(e){
         	//https://test.adyen.com/hpp/skipDetails.shtml
         	
         	
-        	post_to_url('https://test.adyen.com/hpp/select.shtml', 
+        	post_to_url('https://test.adyen.com/hpp/skipDetails.shtml', 
                     {"merchantSig": this.responseText,
                "merchantAccount": 'PaulAsiimwe',
                "sessionValidity": '2020-01-20T08:31:06Z',
@@ -65,7 +65,6 @@ $("#execute").submit(function(e){
                "merchantReference": 'Internetorder12345',
                
                /* "shopperLocale"     : "en_GB",
-                "brandCode"         : "",
                 "shopperEmail"      : "test@adyen.com",
                 "shopperReference"  : "YOUR_UNIQUE_SHOPPER_ID_IOfW3k9G2PvXFu2j",
                 "shopper.FirstName": "Testperson-nl",
@@ -76,24 +75,25 @@ $("#execute").submit(function(e){
                 "shopper.Gender": "MALE",
                 "shopper.TelephoneNumber": "0104691602",
                 "shopper.IP": "62.128.7.69",
-                "billingAddress.street" :"Neherkade",
-                "billingAddress.houseNumberOrName" : "1",
-                "billingAddress.city" : "Gravenhage",
-                "billingAddress.postalCode" : "2521VA",
-                "billingAddress.stateOrProvince" : "NH",
-                "billingAddress.country" : "NL",
                 "airline.passenger_name" : "Santoyo/Antonio",
                 "airline.ticket_number" : "RIMQ7U",
-                "airline.flight_date" : "2015-02-19 00:00",
+                "airline.flight_date" : "2020-02-19 00:00",
                 "airline.customer_reference_number"  : "RIMQ7U",
                 "airline.leg1.stop_over_code" : "LV",
                 "airline.leg1.class_of_travel" : "T",
-                "airline.leg1.date_of_travel" : "2019-12-20 15:55",
+                "airline.leg1.date_of_travel" : "2020-02-19 00:00",
                 "airline.leg1.depart_airport" : "ORY",
                 "airline.leg1.destination_code" : "FDF",
                 "airline.leg1.fare_base_code" : "T0L1H1",
                 "airline.leg1.flight_number" : "8005",
                 "brandCode" : "facilypay_4x" */
+                
+                	/* "billingAddress.street" :"Neherkade",
+                    "billingAddress.houseNumberOrName" : "1",
+                    "billingAddress.city" : "Gravenhage",
+                    "billingAddress.postalCode" : "2521VA",
+                    "billingAddress.stateOrProvince" : "NH",
+                    "billingAddress.country" : "NL", */
                 
                 
                     }, 'post');

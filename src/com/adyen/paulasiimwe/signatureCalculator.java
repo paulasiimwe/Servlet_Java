@@ -60,7 +60,6 @@ public class signatureCalculator extends HttpServlet {
         pairs.put("merchantReference", "Internetorder12345");
         
 //        pairs.put("shopperLocale"     , "en_GB");
-//        pairs.put("brandCode"         , "");
 //        pairs.put("shopperEmail"      , "test@adyen.com");
 //        pairs.put("shopperReference"  , "YOUR_UNIQUE_SHOPPER_ID_IOfW3k9G2PvXFu2j");
 //        pairs.put("shopper.FirstName", "Testperson-nl");
@@ -71,24 +70,25 @@ public class signatureCalculator extends HttpServlet {
 //        pairs.put("shopper.Gender", "MALE");
 //        pairs.put("shopper.TelephoneNumber", "0104691602");
 //        pairs.put("shopper.IP", "62.128.7.69");
-//        pairs.put("billingAddress.street" ,"Neherkade");
-//        pairs.put("billingAddress.houseNumberOrName" , "1");
-//        pairs.put("billingAddress.city" , "Gravenhage");
-//        pairs.put("billingAddress.postalCode" , "2521VA");
-//        pairs.put("billingAddress.stateOrProvince" , "NH");
-//        pairs.put("billingAddress.country" , "NL");
 //        pairs.put("airline.passenger_name" , "Santoyo/Antonio");
 //        pairs.put("airline.ticket_number" , "RIMQ7U");
-//        pairs.put("airline.flight_date" , "2015-02-19 00:00");
+//        pairs.put("airline.flight_date" , "2020-02-19 00:00");
 //        pairs.put("airline.customer_reference_number"  , "RIMQ7U");
 //		pairs.put("airline.leg1.stop_over_code" , "LV");
 //		pairs.put("airline.leg1.class_of_travel" , "T");
-//		pairs.put("airline.leg1.date_of_travel" , "2019-12-20 15:55");
+//		pairs.put("airline.leg1.date_of_travel" , "2020-02-19 00:00");
 //		pairs.put("airline.leg1.depart_airport" , "ORY");
 //		pairs.put("airline.leg1.destination_code" , "FDF");
 //		pairs.put("airline.leg1.fare_base_code" , "T0L1H1");
 //		pairs.put("airline.leg1.flight_number" , "8005");
 //		pairs.put("brandCode" , "facilypay_4x");
+		
+//      pairs.put("billingAddress.street" ,"Neherkade");
+//      pairs.put("billingAddress.houseNumberOrName" , "1");
+//      pairs.put("billingAddress.city" , "Gravenhage");
+//      pairs.put("billingAddress.postalCode" , "2521VA");
+//      pairs.put("billingAddress.stateOrProvince" , "NH");
+//      pairs.put("billingAddress.country" , "NL");
 		
 		System.out.println("\n\n"+request.getParameter("value"));
 		System.out.println(request.getParameter("currency"));

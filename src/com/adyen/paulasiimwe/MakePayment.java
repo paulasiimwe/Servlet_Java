@@ -361,8 +361,6 @@ public class MakePayment extends HttpServlet {
                     paymentsRequest.setDeliveryAddress(deliveryAddress);
                     
                     
-                    
-                    
                     LineItem lineItem1 = new LineItem();
                     lineItem1.setAmountIncludingTax(Long.valueOf(
     						request.getParameter("value")
