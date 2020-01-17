@@ -31,6 +31,7 @@
 var country;
 var currencycode;
 var amount;
+var merchantReference;
 
 //document.getElementById("pay").disabled = true;
 
@@ -40,6 +41,7 @@ $("#execute").submit(function(e){
 	country = document.getElementById("country").value;
 	currencycode = document.getElementById("currencycode").value;
 	amount = document.getElementById("amount").value;
+	merchantReference = makeID(10);
     
     
     var xhttp = new XMLHttpRequest();
@@ -61,15 +63,14 @@ $("#execute").submit(function(e){
                "shipBeforeDate": '2020-01-20',
                "paymentAmount": amount,
                "currencyCode": currencycode,
-               "skinCode": 'LArdpUlk',
-               "merchantReference": 'Internetorder12345',
+               "merchantReference": merchantReference,
                
-               /* "shopperLocale"     : "en_GB",
+                "shopperLocale"     : "en_GB",
                 "shopperEmail"      : "test@adyen.com",
                 "shopperReference"  : "YOUR_UNIQUE_SHOPPER_ID_IOfW3k9G2PvXFu2j",
                 "shopper.FirstName": "Testperson-nl",
                 "shopper.LastName": "Approved",
-                "shopper.DateOfBirthDayOfMonth": "10",
+                "shopper.DateOfBirthDay": "10",
                 "shopper.DateOfBirthMonth": "07",
                 "shopper.DateOfBirthYear": "1970",
                 "shopper.Gender": "MALE",
@@ -79,14 +80,13 @@ $("#execute").submit(function(e){
                 "airline.ticket_number" : "RIMQ7U",
                 "airline.flight_date" : "2020-02-19 00:00",
                 "airline.customer_reference_number"  : "RIMQ7U",
-                "airline.leg1.stop_over_code" : "LV",
                 "airline.leg1.class_of_travel" : "T",
                 "airline.leg1.date_of_travel" : "2020-02-19 00:00",
                 "airline.leg1.depart_airport" : "ORY",
                 "airline.leg1.destination_code" : "FDF",
                 "airline.leg1.fare_base_code" : "T0L1H1",
                 "airline.leg1.flight_number" : "8005",
-                "brandCode" : "facilypay_4x" */
+                "brandCode" : "facilypay_4x",
                 
                 	/* "billingAddress.street" :"Neherkade",
                     "billingAddress.houseNumberOrName" : "1",
@@ -95,7 +95,8 @@ $("#execute").submit(function(e){
                     "billingAddress.stateOrProvince" : "NH",
                     "billingAddress.country" : "NL", */
                 
-                
+
+                    "skinCode": 'LArdpUlk'
                     }, 'post');
         	
        }
@@ -103,7 +104,7 @@ $("#execute").submit(function(e){
 
 	xhttp.open("POST", "signatureCalculator", true);
 	xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-	xhttp.send(country+"&currency="+currencycode+"&value="+amount);
+	xhttp.send("country="+country+"&currency="+currencycode+"&value="+amount+"&merchantReference="+merchantReference);
 });
 
 function post_to_url(path, params, method) {
@@ -139,6 +140,16 @@ function get(name){
 	    const found = params.filter(el => (el.split('=')[0] === name) && el);
 	    if (found.length) return decodeURIComponent(found[0].split('=')[1]);
 	  }
+	}
+	
+function makeID(length) {
+	   var result           = '';
+	   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	   var charactersLength = characters.length;
+	   for ( var i = 0; i < length; i++ ) {
+	      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+	   }
+	   return result;
 	}
 	
 if(get("authResult")){
