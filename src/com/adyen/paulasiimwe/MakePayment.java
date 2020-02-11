@@ -139,8 +139,43 @@ public class MakePayment extends HttpServlet {
 		
 		
 		try{
-
 			
+			
+			Name shopperName = new Name();
+          shopperName.setFirstName("Simon");
+          shopperName.setLastName("Hopper");
+          shopperName.setGender(GenderEnum.MALE);
+          paymentsRequest.setShopperName(shopperName);
+          
+          Address billingAddress = new Address();
+          billingAddress.setCity("Stockholm");
+          billingAddress.setCountry("SE");
+          billingAddress.setPostalCode("111 22");
+          billingAddress.setStreet("Kungsbron");
+          billingAddress.setHouseNumberOrName("16 12 trp");
+          paymentsRequest.setBillingAddress(billingAddress);
+			
+//          Address deliveryAddress = new Address();
+//          deliveryAddress.setCity("UGINE");
+//          deliveryAddress.setCountry("FR");
+//          deliveryAddress.setPostalCode("73400");
+//          deliveryAddress.setStreet("Rue du Centenaire");
+//          deliveryAddress.setHouseNumberOrName("461");
+//          paymentsRequest.setDeliveryAddress(deliveryAddress);
+
+			Date birthDate = new Date();
+            birthDate.setDate(30);
+            birthDate.setMonth(7);
+            birthDate.setYear(85);
+            paymentsRequest.setDateOfBirth(birthDate);
+            
+            paymentsRequest.setShopperLocale("en_US");
+            
+            paymentsRequest.setCountryCode(request.getParameter("countryCode"));
+            
+            paymentsRequest.setShopperEmail("simonhopper@test.adyen.com");
+            
+            paymentsRequest.setTelephoneNumber("0123456789");
             
 
             DefaultPaymentMethodDetails dm  = new DefaultPaymentMethodDetails();
@@ -164,7 +199,9 @@ public class MakePayment extends HttpServlet {
                     String encryptedSecurityCode = paymentComponentData.getString("encryptedSecurityCode");
 
 
-                    paymentsRequest.addEncryptedCardData(encryptedCardNumber,encryptedExpiryMonth, encryptedExpiryYear, encryptedSecurityCode, "John Smith");
+                    paymentsRequest.addEncryptedCardData(encryptedCardNumber,encryptedExpiryMonth, encryptedExpiryYear, encryptedSecurityCode
+                    		, "JOHN SMITH"
+                    		);
 
                     paymentsRequest.setShopperIP("192.0.2.1");
                     
@@ -264,27 +301,6 @@ public class MakePayment extends HttpServlet {
 
                     paymentsRequest.setPaymentMethod(dm);
                     
-                    paymentsRequest.setShopperLocale("en_US");
-                    
-                    paymentsRequest.setCountryCode(request.getParameter("countryCode"));
-                    
-                    paymentsRequest.setShopperEmail("simonhopper@test.adyen.com");
-                    
-//                    Name shopperName = new Name();
-//                    shopperName.setFirstName("Simon");
-//                    shopperName.setLastName("Hopper");
-//                    shopperName.setGender(GenderEnum.MALE);
-//                    paymentsRequest.setShopperName(shopperName);
-                    
-//                    Address billingAddress = new Address();
-//                    billingAddress.setCity("Berlin");
-//                    billingAddress.setCountry("DE");
-//                    billingAddress.setPostalCode("10117");
-//                    billingAddress.setStreet("Friedrichstraße");
-//                    billingAddress.setHouseNumberOrName("63");
-//                    paymentsRequest.setBillingAddress(billingAddress);
-                    
-                    
                     LineItem lineItem = new LineItem();
                     lineItem.setAmountIncludingTax(Long.valueOf(
     						request.getParameter("value")
@@ -321,44 +337,8 @@ public class MakePayment extends HttpServlet {
                 case "facilypay_4x":
                 	
                 	dm.setType(paymentMethodType);
-
-                    paymentsRequest.setPaymentMethod(dm);
                     
-                    paymentsRequest.setShopperLocale("en_US");
-                    
-                    paymentsRequest.setCountryCode("FR");
-                    
-                    paymentsRequest.setShopperEmail("simonhopper@test.adyen.com");
                     paymentsRequest.setShopperReference("simonhopper@test.adyen.com");
-                    
-                    paymentsRequest.setTelephoneNumber("0123456789");
-                    Date birthDate = new Date();
-                    birthDate.setDate(30);
-                    birthDate.setMonth(7);
-                    birthDate.setYear(85);
-                    paymentsRequest.setDateOfBirth(birthDate);
-                    
-                    Name shopperName = new Name();
-                    shopperName.setFirstName("Simon");
-                    shopperName.setLastName("Hopper");
-                    shopperName.setGender(GenderEnum.MALE);
-                    paymentsRequest.setShopperName(shopperName);
-                    
-                    Address billingAddress = new Address();
-                    billingAddress.setCity("UGINE");
-                    billingAddress.setCountry("FR");
-                    billingAddress.setPostalCode("73400");
-                    billingAddress.setStreet("Rue du Centenaire");
-                    billingAddress.setHouseNumberOrName("461");
-                    paymentsRequest.setBillingAddress(billingAddress);
-                    
-                    Address deliveryAddress = new Address();
-                    deliveryAddress.setCity("UGINE");
-                    deliveryAddress.setCountry("FR");
-                    deliveryAddress.setPostalCode("73400");
-                    deliveryAddress.setStreet("Rue du Centenaire");
-                    deliveryAddress.setHouseNumberOrName("461");
-                    paymentsRequest.setDeliveryAddress(deliveryAddress);
                     
                     
                     LineItem lineItem1 = new LineItem();
@@ -483,5 +463,7 @@ public class MakePayment extends HttpServlet {
 	public static String generateString() {
         return UUID.randomUUID().toString().replaceAll("-", "");
     }
+	
+
 
 }

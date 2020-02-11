@@ -51,13 +51,12 @@ public class signatureCalculator extends HttpServlet {
 		
 		String HMAC_KEY = "903B9FA7CF8DC9A614E2E9BCF01F6229E8A72C99AE2B60DFC7F8C6EA09AF79EC";
 		Map<String, String> pairs = new HashMap<>();
-        //pairs.put("shopperLocale", "en_US");
+        
         pairs.put("merchantAccount", "PaulAsiimwe");
-        pairs.put("sessionValidity", "2020-01-20T08:31:06Z");
-        pairs.put("shipBeforeDate", "2020-01-20");
+        pairs.put("sessionValidity", "2021-01-30T08:31:06Z");
+        pairs.put("shipBeforeDate", "2021-01-30");
         pairs.put("paymentAmount", request.getParameter("value"));
         pairs.put("currencyCode", request.getParameter("currency"));
-        pairs.put("skinCode", "LArdpUlk");
         pairs.put("merchantReference", request.getParameter("merchantReference"));
         
         pairs.put("shopperLocale"     , "en_GB");
@@ -89,7 +88,9 @@ public class signatureCalculator extends HttpServlet {
 //      pairs.put("billingAddress.postalCode" , "2521VA");
 //      pairs.put("billingAddress.stateOrProvince" , "NH");
 //      pairs.put("billingAddress.country" , "NL");
-		
+
+        pairs.put("skinCode", "LArdpUlk");
+        
 		System.out.println("\n\n"+request.getParameter("value"));
 		System.out.println(request.getParameter("currency"));
 		System.out.println(request.getParameter("merchantReference"));
