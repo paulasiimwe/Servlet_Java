@@ -147,13 +147,13 @@ public class MakePayment extends HttpServlet {
           shopperName.setGender(GenderEnum.MALE);
           paymentsRequest.setShopperName(shopperName);
           
-          Address billingAddress = new Address();
-          billingAddress.setCity("Stockholm");
-          billingAddress.setCountry("SE");
-          billingAddress.setPostalCode("111 22");
-          billingAddress.setStreet("Kungsbron");
-          billingAddress.setHouseNumberOrName("16 12 trp");
-          paymentsRequest.setBillingAddress(billingAddress);
+//          Address billingAddress = new Address();
+//          billingAddress.setCity("Stockholm");
+//          billingAddress.setCountry("SE");
+//          billingAddress.setPostalCode("111 22");
+//          billingAddress.setStreet("Kungsbron");
+//          billingAddress.setHouseNumberOrName("16 12 trp");
+//          paymentsRequest.setBillingAddress(billingAddress);
 			
 //          Address deliveryAddress = new Address();
 //          deliveryAddress.setCity("UGINE");
@@ -363,6 +363,14 @@ public class MakePayment extends HttpServlet {
                     HashMap<String, String> oneyAdditionalData = new HashMap<>();
                     oneyAdditionalData.put("merchant_pays", "true");
                     paymentsRequest.setAdditionalData(oneyAdditionalData);
+                	break;
+                	
+                
+                case "paywithgoogle":
+                	dm.setType(paymentMethodType);
+                	dm.setGooglepayToken(paymentComponentData.getString("paywithgoogle.token"));
+                	
+                    paymentsRequest.setPaymentMethod(dm);
                 	break;
             }
 
