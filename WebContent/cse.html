@@ -1,0 +1,128 @@
+<html>
+
+<head>
+<meta charset="utf-8">
+<title>CSE Pay</title>
+
+</head>
+
+<body>
+
+<h1 id="txtHint" style="color:green;">
+        Make a payment
+    </h1>
+
+   
+    
+    <script type="text/javascript" src="https://test.adyen.com/hpp/cse/js/8215688115660117.shtml"></script>
+<form id="execute">
+
+		Country: <input type="text" placeholder="NL" name="countryCode" id="country"><br>
+        Currency: <input type="text" placeholder="EUR" name="currency" id="currencycode"><br>
+        Amount: <input type="number" placeholder="1000" name="value" id="amount"><br><br>
+        
+    Card Number: <input type="text" size="20" name="cardNumber" id="cardNumber"/><br>
+    Expiry Month: <input type="text" size="2" name="expiryMonth" id="expiryMonth"/><br>
+    Expiry Year: <input type="text" size="4" name="expiryYear" id="expiryYear"/><br>
+    CVC: <input type="text" size="4" name="cvc" id="cvc"/><br>
+    Card Holder: <input type="text" size="20" name="holderName" id="holderName"/><br>
+    <input type="submit" value="Pay"/>
+</form>
+    
+
+
+<p id="results">Your Payment results shown here</p>
+<script src="http://code.jquery.com/jquery.min.js" type="text/javascript"></script>
+<script>
+
+var country;
+var currencycode;
+var amount;
+var merchantReference;
+var cardNumber, holderName, expiryMonth, expiryYear, cvc;
+
+//document.getElementById("pay").disabled = true;
+
+$("#execute").submit(function(e){
+	e.preventDefault();
+	
+	country = document.getElementById("country").value;
+	currencycode = document.getElementById("currencycode").value;
+	amount = document.getElementById("amount").value;
+	cardNumber = document.getElementById("cardNumber").value;
+	holderName = document.getElementById("holderName").value;
+	expiryMonth = document.getElementById("expiryMonth").value;
+	expiryYear = document.getElementById("expiryYear").value;
+	cvc = document.getElementById("cvc").value;
+	merchantReference = makeID(10);
+	
+	var d = new Date();
+	var generationTime = d.toISOString();
+	
+	var key = "10001|BD67BF5FDCD84F2CD99DD452A76AFC999CA060A187A9A527BA8F72743BAC53BA0362EA7A01AF4612A8FE7B736D9F5B02C65414707A4344D9A666AFCFF33DAB7C387B997D4FE1FABA3502BD604E8793F5CD657C19D822F133E09C48C360E302E5865641FB70DA304E4C067C95361F4181095E61DDF943518FD4811C85C81D7424AF5A0CB66C25E8F1285075F92C2EA4C143E8B1DF6DB2F1CF0B992B5DFBF7FD7419FCBA1421E87A245F42A52DE253E85FB2BE446911214A02A9B40168F354BAC7D742C77B3F99B093FDDD576896B53B32B35419AE9BF2F795D2A3CF2B27C8F466D8D77998B526842FFAF9F188DB5471079EC222590BA298E992C315AEEA44BCCF";
+	var options = {};
+	
+	var cseInstance = adyen.encrypt.createEncryption(key, options);
+	
+	var postData = {};
+	 
+    var cardData = {
+        number : cardNumber,
+        cvc : cvc,
+        holderName : holderName,
+        expiryMonth : expiryMonth,
+        expiryYear : expiryYear,
+        generationtime : generationTime
+    };
+
+    postData['adyen-encrypted-data'] = cseInstance.encrypt(cardData);
+
+    console.log(postData);
+    
+    
+    var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function(){
+		//handleResponse(this, loadedDropIn);
+		if (this.readyState == 4 && this.status == 200) {
+        	document.getElementById("results").innerHTML = this.responseText;
+        	console.log(this.responseText);
+       }
+	};
+
+	xhttp.open("POST", "Authorise", true);
+	xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+	xhttp.send("country="+country+"&currency="+currencycode+"&value="+amount+"&merchantReference="+merchantReference
+			+"&cardData="+encodeURIComponent(postData['adyen-encrypted-data']));
+});
+
+function get(name){
+	  const parts = window.location.href.split('?');
+	  if (parts.length > 1) {
+	    name = encodeURIComponent(name);
+	    const params = parts[1].split('&');
+	    const found = params.filter(el => (el.split('=')[0] === name) && el);
+	    if (found.length) return decodeURIComponent(found[0].split('=')[1]);
+	  }
+	}
+	
+function makeID(length) {
+	   var result           = '';
+	   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	   var charactersLength = characters.length;
+	   for ( var i = 0; i < length; i++ ) {
+	      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+	   }
+	   return result;
+	}
+	
+if(get("authResult")){
+	document.getElementById("results").innerHTML = get("authResult") +"\n"+ get("paymentMethod") +"\n"+ get("pspReference");
+}
+
+
+</script>
+
+
+</body>
+
+</html>
