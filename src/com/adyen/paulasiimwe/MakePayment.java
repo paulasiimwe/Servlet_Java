@@ -368,7 +368,12 @@ public class MakePayment extends HttpServlet {
                 
                 case "paywithgoogle":
                 	dm.setType(paymentMethodType);
-                	dm.setGooglepayToken(paymentComponentData.getString("paywithgoogle.token"));
+                	try {
+                		dm.setGooglepayToken(paymentComponentData.getString("paywithgoogle.token"));
+                	}catch (JSONException e) {
+                		dm.setGooglepayToken(paymentComponentData.getString("token"));
+                	}
+                	
                 	
                     paymentsRequest.setPaymentMethod(dm);
                 	break;
