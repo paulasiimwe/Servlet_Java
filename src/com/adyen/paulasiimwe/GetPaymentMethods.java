@@ -40,6 +40,7 @@ public class GetPaymentMethods extends HttpServlet {
         
         client = new Client(API,
 				Environment.TEST);
+
         
         checkout = new Checkout(client);
         

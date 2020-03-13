@@ -326,6 +326,9 @@ public class MakePayment extends HttpServlet {
                     
                 case "directEbanking":
                 case "trustly":
+                case "bcmc_mobile_app":
+                case "bcmc_mobile_QR":
+                case "bcmc_mobile":
                 
                 	dm.setType(paymentMethodType);
 
