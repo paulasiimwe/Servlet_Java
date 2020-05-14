@@ -16,14 +16,15 @@ import com.adyen.model.checkout.PaymentsResponse;
 import com.adyen.service.Checkout;
 import com.google.gson.Gson;
 
+import static com.adyen.paulasiimwe.GetPaymentMethods.API;
+import static com.adyen.paulasiimwe.GetPaymentMethods.liveAPI;
+
 /**
  * Servlet implementation class PaymentDetails
  */
 @WebServlet("/PaymentDetails")
 public class PaymentDetails extends HttpServlet {
 	
-	
-	static String API = "AQEyhmfxJ4LIbhBDw0m/n3Q5qf3VaY9UCJ1+XWZe9W27jmlZihMPlwWFQSNNxzoSFKkbaUEQwV1bDb7kfNy1WIxIIkxgBw==-FgMmXEbV5KRHFSIE9AMC8R8r/ryQ08qAVsnnJqjR7e8=-ZH4mT8daH7IIAPI9";
 	
 	Client client;
 	Checkout checkout;
@@ -37,9 +38,14 @@ public class PaymentDetails extends HttpServlet {
     public PaymentDetails() {
         super();
         // TODO Auto-generated constructor stub
-        
-        client = new Client(API,
-				Environment.TEST);
+
+		if(GetPaymentMethods.live){
+			client = new Client(liveAPI,
+					Environment.LIVE, "14bc048714e340cf-AdyenTechSupport");
+		}else{
+			client = new Client(API,
+					Environment.TEST);
+		}
         
         checkout = new Checkout(client);
     }

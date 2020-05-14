@@ -123,6 +123,7 @@
     			 }).mount('#component-container');
     	    // code block
     	    break;
+    	case "cellulant":
     	case "klarna_account":
       	case "klarna_paynow":
       	case "klarna":
@@ -149,8 +150,9 @@
         	var selectedPaymentMethod = selectCtrl.options[selectCtrl.selectedIndex];
         	
         	switch(selectedPaymentMethod.value) {
-      	  		
-      	  		case "klarna_account":
+
+                case "cellulant":
+                case "klarna_account":
             	case "klarna_paynow":
             	case "klarna":
             	case "paypal":

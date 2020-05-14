@@ -25,9 +25,12 @@ import com.google.gson.Gson;
 public class GetPaymentMethods extends HttpServlet {
 	
 	static String API = "AQEyhmfxJ4LIbhBDw0m/n3Q5qf3VaY9UCJ1+XWZe9W27jmlZihMPlwWFQSNNxzoSFKkbaUEQwV1bDb7kfNy1WIxIIkxgBw==-FgMmXEbV5KRHFSIE9AMC8R8r/ryQ08qAVsnnJqjR7e8=-ZH4mT8daH7IIAPI9";
-	
+
+	static String liveAPI = "AQEyhmfxKY3PbxBEw0m/n3Q5qf3VaY9UCJ1+XWZe9W27jmlZirXJmGmIlBs97G+e9glHKXUQwV1bDb7kfNy1WIxIIkxgBw==-HikZpEZVs+l1vsARBJmgpNtNqfsDkElT6t82mZwaOQ0=-$A5{Fys9pJyZ8Y2>";
+
 	Client client;
 	Checkout checkout;
+	static Boolean live = false;
 	
 	private static final long serialVersionUID = 1L;
        
@@ -37,9 +40,14 @@ public class GetPaymentMethods extends HttpServlet {
     public GetPaymentMethods() {
         super();
         // TODO Auto-generated constructor stub
-        
-        client = new Client(API,
-				Environment.TEST);
+
+		if(live){
+			client = new Client(liveAPI,
+					Environment.LIVE, "14bc048714e340cf-AdyenTechSupport");
+		}else{
+			client = new Client(API,
+					Environment.TEST);
+		}
 
         
         checkout = new Checkout(client);
@@ -101,6 +109,8 @@ public class GetPaymentMethods extends HttpServlet {
 			
 			Gson gson = new Gson();
             String json = gson.toJson(Response);
+
+            //json = json.replace("Credit Card", "Kaaddi");
             
             JSONObject jb = new JSONObject(json);
             

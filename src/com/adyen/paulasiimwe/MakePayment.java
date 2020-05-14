@@ -12,17 +12,13 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.adyen.model.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 import com.adyen.Client;
 import com.adyen.enums.Environment;
-import com.adyen.model.Address;
-import com.adyen.model.Amount;
-import com.adyen.model.BrowserInfo;
-import com.adyen.model.Name;
 import com.adyen.model.Name.GenderEnum;
-import com.adyen.model.Split;
-import com.adyen.model.SplitAmount;
 import com.adyen.model.checkout.DefaultPaymentMethodDetails;
 import com.adyen.model.checkout.LineItem;
 import com.adyen.model.checkout.LineItem.TaxCategoryEnum;
@@ -31,14 +27,16 @@ import com.adyen.model.checkout.PaymentsResponse;
 import com.adyen.service.Checkout;
 import com.google.gson.Gson;
 
+import static com.adyen.paulasiimwe.GetPaymentMethods.API;
+import static com.adyen.paulasiimwe.GetPaymentMethods.liveAPI;
+
 /**
  * Servlet implementation class MakePayment
  */
 @WebServlet("/MakePayment")
 public class MakePayment extends HttpServlet {
 	
-	static String API = "AQEyhmfxJ4LIbhBDw0m/n3Q5qf3VaY9UCJ1+XWZe9W27jmlZihMPlwWFQSNNxzoSFKkbaUEQwV1bDb7kfNy1WIxIIkxgBw==-FgMmXEbV5KRHFSIE9AMC8R8r/ryQ08qAVsnnJqjR7e8=-ZH4mT8daH7IIAPI9";
-	
+
 	Client client;
 	Checkout checkout;
 	Boolean marketPay = false;
@@ -51,11 +49,19 @@ public class MakePayment extends HttpServlet {
     public MakePayment() {
         super();
         // TODO Auto-generated constructor stub
-        
-        client = new Client(API,
-				Environment.TEST);
+
+		if(GetPaymentMethods.live){
+			client = new Client(liveAPI,
+					Environment.LIVE, "14bc048714e340cf-AdyenTechSupport");
+
+		}else{
+			client = new Client(API,
+					Environment.TEST);
+		}
+
         
         checkout = new Checkout(client);
+
     }
 
 	/**
@@ -142,8 +148,8 @@ public class MakePayment extends HttpServlet {
 			
 			
 			Name shopperName = new Name();
-          shopperName.setFirstName("Simon");
-          shopperName.setLastName("Hopper");
+          shopperName.setFirstName("Paul");
+          shopperName.setLastName("Asiimwe");
           shopperName.setGender(GenderEnum.MALE);
           paymentsRequest.setShopperName(shopperName);
           
@@ -174,8 +180,10 @@ public class MakePayment extends HttpServlet {
             paymentsRequest.setCountryCode(request.getParameter("countryCode"));
             
             paymentsRequest.setShopperEmail("simonhopper@test.adyen.com");
+
+
             
-            paymentsRequest.setTelephoneNumber("0123456789");
+            paymentsRequest.setTelephoneNumber("0775888502");
             
 
             DefaultPaymentMethodDetails dm  = new DefaultPaymentMethodDetails();
@@ -207,6 +215,8 @@ public class MakePayment extends HttpServlet {
                     
                     HashMap<String, String> additionalData = new HashMap<>();
                     additionalData.put("allow3DS2", "true");
+
+                    //paymentsRequest.setThreeDSAuthenticationOnly(true);
                     
                     paymentsRequest.setAdditionalData(additionalData);
 
@@ -329,6 +339,7 @@ public class MakePayment extends HttpServlet {
                 case "bcmc_mobile_app":
                 case "bcmc_mobile_QR":
                 case "bcmc_mobile":
+				case "cellulant":
                 
                 	dm.setType(paymentMethodType);
 

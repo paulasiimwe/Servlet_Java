@@ -28,12 +28,6 @@
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" name="Maven: org.json:json:20190722" level="project" />
-    <orderEntry type="library" name="Maven: com.adyen:adyen-java-api-library:4.1.0" level="project" />
-    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.14" level="project" />
-    <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.8.6" level="project" />
-    <orderEntry type="library" name="Maven: javax.xml.crypto:jsr105-api:1.0.1" level="project" />
-    <orderEntry type="library" name="Maven: com.google.guava:guava:18.0" level="project" />
     <orderEntry type="module-library">
       <library name="javax.servlet:javax.servlet-api:4.0.1" type="repository">
         <properties maven-id="javax.servlet:javax.servlet-api:4.0.1" />
@@ -44,5 +38,11 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="Maven: org.json:json:20190722" level="project" />
+    <orderEntry type="library" name="Maven: com.adyen:adyen-java-api-library:4.1.0" level="project" />
+    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.14" level="project" />
+    <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.8.6" level="project" />
+    <orderEntry type="library" name="Maven: javax.xml.crypto:jsr105-api:1.0.1" level="project" />
+    <orderEntry type="library" name="Maven: com.google.guava:guava:18.0" level="project" />
   </component>
 </module>
